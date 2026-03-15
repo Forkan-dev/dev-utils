@@ -1,0 +1,41 @@
+services:
+  app:
+    build: .
+    container_name: ${APP_NAME:-app}
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    networks:
+      - appnet
+
+  db:
+    image: mysql:8.0
+    container_name: ${APP_NAME:-app}_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-app}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    networks:
+      - appnet
+
+  redis:
+    image: redis:alpine
+    container_name: ${APP_NAME:-app}_redis
+    networks:
+      - appnet
+
+volumes:
+  db_data:
+
+networks:
+  appnet:
+    driver: bridge

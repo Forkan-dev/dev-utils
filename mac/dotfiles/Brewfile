@@ -1,0 +1,35 @@
+tap "homebrew/bundle"
+
+# ── Core CLI ──────────────────────────────
+brew "git"
+brew "gh"              # GitHub CLI
+brew "tmux"
+brew "neovim"
+brew "stow"            # dotfile symlink manager
+brew "ripgrep"         # fast grep
+brew "fd"              # fast find
+brew "fzf"             # fuzzy finder
+brew "bat"             # better cat
+brew "eza"             # better ls
+brew "zoxide"          # smart cd
+brew "starship"        # prompt
+
+# ── Languages ─────────────────────────────
+brew "go"
+brew "php"
+brew "composer"
+brew "node"
+
+# ── Zsh plugins ───────────────────────────
+brew "zsh-autosuggestions"
+brew "zsh-syntax-highlighting"
+
+# ── Docker (no Docker Desktop) ────────────
+brew "colima"
+brew "docker"
+brew "docker-compose"
+brew "lazydocker"
+
+# ── Fonts + Terminal ──────────────────────
+cask "font-jetbrains-mono-nerd-font"
+cask "wezterm"

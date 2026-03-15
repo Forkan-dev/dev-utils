@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+.env
+.env.local
+.env.*.local
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+.phpunit.result.cache
+dist/
+build/
