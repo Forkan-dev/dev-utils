@@ -43,25 +43,29 @@ for pkg in zsh git tmux nvim starship; do
   fi
 done
 
-# ── 4. Tmux plugin manager (TPM) ─────────────────────────────
+# ── 4. LazyVim (Neovim base) ─────────────────────────────────
+log "Setting up Neovim / LazyVim..."
+NVIM_CONFIG="$HOME/.config/nvim"
+if [ ! -f "$NVIM_CONFIG/init.lua" ]; then
+  # Clone starter into a temp dir, copy base files only.
+  # Stow already owns ~/.config/nvim (symlinked from dotfiles/nvim/.config/nvim),
+  # so we copy only the LazyVim base files without overwriting our custom lua files.
+  git clone https://github.com/LazyVim/starter /tmp/lazyvim-starter
+  cp -n /tmp/lazyvim-starter/init.lua "$NVIM_CONFIG/" 2>/dev/null || true
+  cp -rn /tmp/lazyvim-starter/lua/lazyvim "$NVIM_CONFIG/lua/" 2>/dev/null || true
+  rm -rf /tmp/lazyvim-starter
+  ok "LazyVim base installed — custom keymaps + plugins already in place via stow"
+else
+  ok "Neovim config already exists"
+fi
+
+# ── 5. Tmux plugin manager (TPM) ─────────────────────────────
 log "Installing TPM (tmux plugin manager)..."
 if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
   git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
   ok "TPM cloned — open tmux and press Ctrl+a then Shift+I to install plugins"
 else
   ok "TPM already installed"
-fi
-
-# ── 5. LazyVim (Neovim config) ────────────────────────────────
-log "Setting up Neovim / LazyVim..."
-NVIM_CONFIG="$HOME/.config/nvim"
-if [ ! -d "$NVIM_CONFIG" ] || [ -z "$(ls -A "$NVIM_CONFIG" 2>/dev/null)" ]; then
-  # Clone LazyVim starter then overwrite with our custom lua files
-  git clone https://github.com/LazyVim/starter "$NVIM_CONFIG"
-  rm -rf "$NVIM_CONFIG/.git"
-  ok "LazyVim starter cloned — custom keymaps and plugins already in place via stow"
-else
-  ok "Neovim config already exists"
 fi
 
 # ── 6. Docker runtime (Colima) ────────────────────────────────
@@ -100,10 +104,11 @@ echo "  ────────────────────────
 echo "  Setup complete!"
 echo ""
 echo "  Next steps:"
-echo "  1. Open a new terminal (zsh + starship will be active)"
-echo "  2. Open tmux and press Ctrl+a then Shift+I to install plugins"
-echo "  3. Run 'nvim' — LazyVim plugins install automatically on first launch"
+echo "  1. Open a new terminal — zsh + starship will be active"
 if ! gh auth status &>/dev/null 2>&1; then
-echo "  4. Run 'gh auth login' to authenticate GitHub CLI"
+echo "  2. Run 'gh auth login' to authenticate GitHub CLI"
+echo "  3. Run 'ssh-keygen -t ed25519 -C you@email.com' to generate SSH key"
 fi
+echo "  4. Run 'nvim' — LazyVim plugins install automatically on first launch"
+echo "  5. Open tmux and press Ctrl+a then Shift+I to install tmux plugins"
 echo ""
