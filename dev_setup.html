@@ -455,32 +455,137 @@
 
 var dataMac = [
   {
-    icon: "🍺",
-    title: "Homebrew & Core Tools",
-    sub: "Package manager + all CLI tools declared in one Brewfile",
-    time: "~5 min",
+    icon: "🗂",
+    title: "Dotfiles First — Write All Configs",
+    sub: "Create ~/dotfiles and write every config file here from day one. Never scatter files across ~ then move them later.",
+    time: "~15 min",
     prereq: null,
     steps: [
       {
-        label: "Install Homebrew",
-        tag: "required",
-        note: "The foundation of every macOS dev setup. Run this first on any new Mac. It installs to /opt/homebrew on Apple Silicon — different from Intel Macs.",
+        label: "Why dotfiles first?",
+        tag: "concept",
+        note: "The wrong way: install tools → write configs to ~ → move to dotfiles later. The right way: create dotfiles folder now → write configs directly here → bootstrap.sh symlinks everything into place. You only set up once. On any future Mac you just clone + run one script.",
         files: [
-          { name: "terminal",
-            code: '<span class="c"># Install Homebrew (Apple Silicon path)</span>\n/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\n\n<span class="c"># Add to PATH (required for Apple Silicon)</span>\necho \'eval "$(/opt/homebrew/bin/brew shellenv)"\' >> ~/.zprofile\neval "$(/opt/homebrew/bin/brew shellenv)"\n\n<span class="c"># Verify</span>\nbrew --version'
+          { name: "structure",
+            code: "~/dotfiles/\n├── Brewfile              ← all tools declared here (not ~/Brewfile)\n├── bootstrap.sh          ← run once on any new Mac\n├── zsh/\n│   └── .zshrc            ← stow creates ~/.zshrc symlink\n├── git/\n│   ├── .gitconfig        ← stow creates ~/.gitconfig symlink\n│   └── .gitignore_global\n├── tmux/\n│   └── .tmux.conf        ← stow creates ~/.tmux.conf symlink\n├── nvim/\n│   └── .config/\n│       └── nvim/         ← stow creates ~/.config/nvim symlink\n│           └── lua/\n│               ├── config/keymaps.lua\n│               └── plugins/extras.lua\n└── starship/\n    └── .config/\n        └── starship.toml ← stow creates ~/.config/starship.toml symlink"
           }
         ]
       },
       {
-        label: "Create ~/Brewfile — install everything at once",
-        tag: "one command",
-        note: "One file to declare all your tools declaratively. Run brew bundle and everything installs in one shot. Commit this to your dotfiles repo so you can restore any machine.",
+        label: "Create the folder structure",
+        tag: "setup",
+        note: "Create all package folders up front. Every subfolder here is a GNU Stow package — its contents get symlinked to $HOME.",
         files: [
-          { name: "~/Brewfile",
-            code: '<span class="h">tap</span> <span class="s">"homebrew/bundle"</span>\n\n<span class="g"># ── Core CLI ──────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"git"</span>\n<span class="h">brew</span> <span class="s">"gh"</span>              <span class="g"># GitHub CLI</span>\n<span class="h">brew</span> <span class="s">"tmux"</span>\n<span class="h">brew</span> <span class="s">"neovim"</span>\n<span class="h">brew</span> <span class="s">"stow"</span>             <span class="g"># dotfile symlink manager</span>\n<span class="h">brew</span> <span class="s">"ripgrep"</span>           <span class="g"># fast grep</span>\n<span class="h">brew</span> <span class="s">"fd"</span>               <span class="g"># fast find</span>\n<span class="h">brew</span> <span class="s">"fzf"</span>              <span class="g"># fuzzy finder</span>\n<span class="h">brew</span> <span class="s">"bat"</span>              <span class="g"># better cat</span>\n<span class="h">brew</span> <span class="s">"eza"</span>              <span class="g"># better ls</span>\n<span class="h">brew</span> <span class="s">"zoxide"</span>           <span class="g"># smart cd</span>\n<span class="h">brew</span> <span class="s">"starship"</span>         <span class="g"># prompt</span>\n\n<span class="g"># ── Languages ─────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"go"</span>\n<span class="h">brew</span> <span class="s">"php"</span>\n<span class="h">brew</span> <span class="s">"composer"</span>\n<span class="h">brew</span> <span class="s">"node"</span>\n\n<span class="g"># ── Zsh plugins ───────────────────────────</span>\n<span class="h">brew</span> <span class="s">"zsh-autosuggestions"</span>\n<span class="h">brew</span> <span class="s">"zsh-syntax-highlighting"</span>\n\n<span class="g"># ── Docker (no Docker Desktop) ────────────</span>\n<span class="h">brew</span> <span class="s">"colima"</span>\n<span class="h">brew</span> <span class="s">"docker"</span>\n<span class="h">brew</span> <span class="s">"docker-compose"</span>\n<span class="h">brew</span> <span class="s">"lazydocker"</span>\n\n<span class="g"># ── Fonts + Terminal ──────────────────────</span>\n<span class="h">cask</span> <span class="s">"font-jetbrains-mono-nerd-font"</span>\n<span class="h">cask</span> <span class="s">"wezterm"</span>'
+          { name: "terminal",
+            code: "mkdir -p ~/dotfiles/zsh\nmkdir -p ~/dotfiles/git\nmkdir -p ~/dotfiles/tmux\nmkdir -p ~/dotfiles/nvim/.config/nvim/lua/config\nmkdir -p ~/dotfiles/nvim/.config/nvim/lua/plugins\nmkdir -p ~/dotfiles/starship/.config"
+          }
+        ]
+      },
+      {
+        label: "Write ~/dotfiles/Brewfile",
+        tag: "required",
+        note: "The Brewfile lives in ~/dotfiles — NOT in ~/. bootstrap.sh installs from here with brew bundle --file. No need for a ~/Brewfile at all.",
+        files: [
+          { name: "~/dotfiles/Brewfile",
+            code: '<span class="h">tap</span> <span class="s">"homebrew/bundle"</span>\n\n<span class="g"># ── Core CLI ──────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"git"</span>\n<span class="h">brew</span> <span class="s">"gh"</span>              <span class="g"># GitHub CLI</span>\n<span class="h">brew</span> <span class="s">"tmux"</span>\n<span class="h">brew</span> <span class="s">"neovim"</span>\n<span class="h">brew</span> <span class="s">"stow"</span>             <span class="g"># dotfile symlink manager</span>\n<span class="h">brew</span> <span class="s">"ripgrep"</span>\n<span class="h">brew</span> <span class="s">"fd"</span>\n<span class="h">brew</span> <span class="s">"fzf"</span>\n<span class="h">brew</span> <span class="s">"bat"</span>\n<span class="h">brew</span> <span class="s">"eza"</span>\n<span class="h">brew</span> <span class="s">"zoxide"</span>\n<span class="h">brew</span> <span class="s">"starship"</span>\n\n<span class="g"># ── Languages ─────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"go"</span>\n<span class="h">brew</span> <span class="s">"php"</span>\n<span class="h">brew</span> <span class="s">"composer"</span>\n<span class="h">brew</span> <span class="s">"node"</span>\n\n<span class="g"># ── Zsh plugins ───────────────────────────</span>\n<span class="h">brew</span> <span class="s">"zsh-autosuggestions"</span>\n<span class="h">brew</span> <span class="s">"zsh-syntax-highlighting"</span>\n\n<span class="g"># ── Docker (no Docker Desktop) ────────────</span>\n<span class="h">brew</span> <span class="s">"colima"</span>\n<span class="h">brew</span> <span class="s">"docker"</span>\n<span class="h">brew</span> <span class="s">"docker-compose"</span>\n<span class="h">brew</span> <span class="s">"lazydocker"</span>\n\n<span class="g"># ── Fonts + Terminal ──────────────────────</span>\n<span class="h">cask</span> <span class="s">"font-jetbrains-mono-nerd-font"</span>\n<span class="h">cask</span> <span class="s">"wezterm"</span>'
+          }
+        ]
+      },
+      {
+        label: "Write ~/dotfiles/zsh/.zshrc",
+        tag: "config",
+        note: "Write directly into dotfiles — not into ~/.zshrc. Stow will create the symlink. All aliases for git, docker, laravel, go in one file. No Oh-My-Zsh — just 2 lightweight plugins.",
+        files: [
+          { name: "~/dotfiles/zsh/.zshrc",
+            code: '<span class="g"># ── PATH ─────────────────────────────────</span>\nexport PATH="/opt/homebrew/bin:$PATH"\nexport PATH="$HOME/.local/bin:$PATH"\nexport GOPATH="$HOME/go"\nexport PATH="$GOPATH/bin:$PATH"\nexport EDITOR="nvim"\nexport VISUAL="nvim"\n\n<span class="g"># ── HISTORY ──────────────────────────────</span>\nHISTSIZE=10000; SAVEHIST=10000; HISTFILE=~/.zsh_history\nsetopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY\n\n<span class="g"># ── PLUGINS (from Brewfile) ───────────────</span>\nsource /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh\nsource /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n<span class="g"># ── PROMPT + SMART NAV ───────────────────</span>\neval "$(starship init zsh)"\neval "$(zoxide init zsh)"\neval "$(fzf --zsh)"\n\n<span class="g"># ── GIT ──────────────────────────────────</span>\nalias g=\'git\'\nalias gs=\'git status -sb\'\nalias ga=\'git add\'\nalias gaa=\'git add .\'\nalias gc=\'git commit -m\'\nalias gca=\'git commit --amend --no-edit\'\nalias gp=\'git push\'\nalias gpl=\'git pull\'\nalias gco=\'git checkout\'\nalias gcb=\'git checkout -b\'\nalias gbr=\'git branch\'\nalias glog=\'git log --oneline --graph --decorate\'\nalias gwip=\'git add -A && git commit -m "wip"\'\nalias gunwip=\'git reset --soft HEAD~1\'\nalias gstash=\'git stash\'\nalias gpop=\'git stash pop\'\n\n<span class="g"># ── DOCKER ───────────────────────────────</span>\nalias d=\'docker\'\nalias dc=\'docker compose\'\nalias dcu=\'docker compose up -d\'\nalias dcd=\'docker compose down\'\nalias dcr=\'docker compose restart\'\nalias dcl=\'docker compose logs -f\'\nalias dps=\'docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"\'\nalias dprune=\'docker system prune -af --volumes\'\nalias ld=\'lazydocker\'\ndsh()   { docker exec -it "$1" /bin/sh; }\ndbash() { docker exec -it "$1" /bin/bash; }\n\n<span class="g"># ── LARAVEL ──────────────────────────────</span>\nalias art=\'php artisan\'\nalias artm=\'php artisan migrate\'\nalias artmf=\'php artisan migrate:fresh --seed\'\nalias artr=\'php artisan route:list\'\nalias artq=\'php artisan queue:work\'\nalias sail=\'./vendor/bin/sail\'\nalias sailup=\'./vendor/bin/sail up -d\'\nalias saildown=\'./vendor/bin/sail down\'\nalias pint=\'./vendor/bin/pint\'\nalias pest=\'./vendor/bin/pest\'\n\n<span class="g"># ── GO ────────────────────────────────────</span>\nalias gor=\'go run .\'\nalias gob=\'go build .\'\nalias got=\'go test ./...\'\nalias gotv=\'go test -v ./...\'\nalias gomod=\'go mod tidy\'\n\n<span class="g"># ── TMUX ─────────────────────────────────</span>\nalias t=\'tmux\'\nalias ta=\'tmux attach -t\'\nalias tn=\'tmux new -s\'\nalias tl=\'tmux ls\'\nalias tk=\'tmux kill-session -t\'\n\n<span class="g"># ── SYSTEM ───────────────────────────────</span>\nalias ls=\'eza --icons\'\nalias ll=\'eza -la --icons --git\'\nalias lt=\'eza --tree --level=2 --icons\'\nalias cat=\'bat\'\nalias vim=\'nvim\'\nalias vi=\'nvim\'\nalias zrc=\'nvim ~/dotfiles/zsh/.zshrc\'\nalias zs=\'source ~/.zshrc\'\nalias ..=\'cd ..\'\nalias ...=\'cd ../..\'\nmkcd() { mkdir -p "$1" && cd "$1"; }\ngcl()  { git clone "$1" && cd "$(basename "$1" .git)"; }'
+          }
+        ]
+      },
+      {
+        label: "Write git configs",
+        tag: "identity",
+        note: "Write both files directly into ~/dotfiles/git/. Replace Your Name and you@email.com with your details before pushing to GitHub.",
+        files: [
+          { name: "~/dotfiles/git/.gitconfig",
+            code: '[user]\n    name  = <span class="v">Your Name</span>\n    email = <span class="v">you@email.com</span>\n\n[init]\n    defaultBranch = main\n\n[core]\n    editor       = nvim\n    autocrlf     = input\n    excludesfile = ~/.gitignore_global\n\n[pull]\n    rebase = true\n\n[push]\n    autoSetupRemote = true\n\n[alias]\n    st   = status -sb\n    lg   = log --oneline --graph --decorate\n    co   = checkout\n    cm   = commit -m\n    undo = reset --soft HEAD~1\n    wip  = !git add -A && git commit -m "wip"'
           },
-          { name: "terminal — install everything",
-            code: "brew bundle --file=~/Brewfile\n\n# This installs all tools in one go. Takes 3-8 min depending on internet speed."
+          { name: "~/dotfiles/git/.gitignore_global",
+            code: '<span class="c"># macOS</span>\n.DS_Store\n.AppleDouble\n.LSOverride\n\n<span class="c"># Editor</span>\n.env\n.env.local\n.env.*.local\n*.swp\n*.swo\n.idea/\n.vscode/\n\n<span class="c"># Dependencies</span>\nnode_modules/\nvendor/\n\n<span class="c"># Build</span>\n.phpunit.result.cache\ndist/\nbuild/'
+          }
+        ]
+      },
+      {
+        label: "Write tmux + starship configs",
+        tag: "config",
+        note: "Write directly into the dotfiles packages. Stow will create ~/.tmux.conf and ~/.config/starship.toml as symlinks pointing here.",
+        files: [
+          { name: "~/dotfiles/tmux/.tmux.conf",
+            code: '<span class="g"># ── PREFIX ───────────────────────────────</span>\nunbind C-b\nset -g prefix C-a\nbind C-a send-prefix\n\n<span class="g"># ── SETTINGS ─────────────────────────────</span>\nset -g mouse on\nset -g base-index 1\nsetw -g pane-base-index 1\nset -g renumber-windows on\nset -g history-limit 10000\nset -g default-terminal "tmux-256color"\nset -ga terminal-overrides ",*256col*:Tc"\n\n<span class="g"># ── VIM PANE NAV ─────────────────────────</span>\nbind h select-pane -L\nbind j select-pane -D\nbind k select-pane -U\nbind l select-pane -R\n\n<span class="g"># ── SPLITS (open in current dir) ─────────</span>\nbind | split-window -h -c "#{pane_current_path}"\nbind - split-window -v -c "#{pane_current_path}"\nbind c new-window   -c "#{pane_current_path}"\n\n<span class="g"># ── RELOAD ───────────────────────────────</span>\nbind r source-file ~/.tmux.conf \\; display "Reloaded!"\n\n<span class="g"># ── STATUS BAR (Catppuccin) ───────────────</span>\nset -g status-style        \'bg=#1e1e2e fg=#cdd6f4\'\nset -g status-left         \'#[fg=#a6e3a1,bold] #S  \'\nset -g status-right        \'#[fg=#89b4fa] %H:%M #[fg=#cba6f7] %d %b\'\nset -g window-status-current-style \'fg=#fab387,bold\'\n\n<span class="g"># ── PLUGINS (TPM) ────────────────────────</span>\nset -g @plugin \'tmux-plugins/tpm\'\nset -g @plugin \'tmux-plugins/tmux-resurrect\'\nset -g @plugin \'tmux-plugins/tmux-continuum\'\nset -g @continuum-restore \'on\'\nrun \'~/.tmux/plugins/tpm/tpm\''
+          },
+          { name: "~/dotfiles/starship/.config/starship.toml",
+            code: 'format = """\n$directory\\\n$git_branch\\\n$git_status\\\n$golang\\\n$nodejs\\\n$php\\\n$cmd_duration\\\n$line_break\\\n$character"""\n\n[character]\nsuccess_symbol = "[❯](bold green)"\nerror_symbol   = "[❯](bold red)"\n\n[directory]\ntruncation_length = 3\ntruncate_to_repo  = true\nstyle             = "bold blue"\n\n[git_branch]\nsymbol = " "\n\n[git_status]\nahead     = "⇡${count}"\nbehind    = "⇣${count}"\nmodified  = "!${count}"\nuntracked = "?${count}"\nstaged    = "+${count}"\n\n[golang]\nsymbol = " "\n\n[nodejs]\nsymbol = " "\n\n[php]\nsymbol = " "'
+          }
+        ]
+      },
+      {
+        label: "Write Neovim configs",
+        tag: "config",
+        note: "Write custom keymaps and extra plugins into the nvim package. bootstrap.sh will clone LazyVim starter and stow symlinks these files into place automatically.",
+        files: [
+          { name: "~/dotfiles/nvim/.config/nvim/lua/config/keymaps.lua",
+            code: '<span class="k">local</span> map = vim.keymap.set\n\n<span class="g">-- Window navigation (consistent with tmux)</span>\nmap(<span class="s">"n"</span>, <span class="s">"<C-h>"</span>, <span class="s">"<C-w>h"</span>, { desc = <span class="s">"Go to left window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-j>"</span>, <span class="s">"<C-w>j"</span>, { desc = <span class="s">"Go to lower window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-k>"</span>, <span class="s">"<C-w>k"</span>, { desc = <span class="s">"Go to upper window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-l>"</span>, <span class="s">"<C-w>l"</span>, { desc = <span class="s">"Go to right window"</span> })\n\nmap(<span class="s">"n"</span>, <span class="s">"<leader>w"</span>, <span class="s">"<cmd>w<cr>"</span>,  { desc = <span class="s">"Save"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<leader>q"</span>, <span class="s">"<cmd>qa<cr>"</span>, { desc = <span class="s">"Quit all"</span> })'
+          },
+          { name: "~/dotfiles/nvim/.config/nvim/lua/plugins/extras.lua",
+            code: '<span class="k">return</span> {\n  { <span class="s">"ray-x/go.nvim"</span>, ft = <span class="s">"go"</span>, dependencies = { <span class="s">"ray-x/guihua.lua"</span> }, config = <span class="k">true</span> },\n  { <span class="s">"jwalton512/vim-blade"</span> },\n  { <span class="s">"ekalinin/Dockerfile.vim"</span> },\n  { <span class="s">"zbirenbaum/copilot.lua"</span>,\n    cmd = <span class="s">"Copilot"</span>, event = <span class="s">"InsertEnter"</span>,\n    opts = { suggestion = { auto_trigger = <span class="k">true</span> } } },\n}'
+          }
+        ]
+      },
+      {
+        label: "Push dotfiles to a private GitHub repo",
+        tag: "git",
+        note: "Push now — before running bootstrap. This lets you restore any future Mac by cloning one repo and running one script. Never commit secrets; .env files are already in .gitignore_global.",
+        files: [
+          { name: "terminal",
+            code: 'cd ~/dotfiles\ngit init\ngit add .\ngit commit -m "init: full dev environment"\n\n<span class="c"># You need gh CLI for this — install it first if not present:</span>\nbrew install gh && gh auth login\n\n<span class="c"># Create private repo + push</span>\ngh repo create dotfiles --private --push --source=.'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🚀",
+    title: "Bootstrap — One Command Does Everything",
+    sub: "Install Homebrew, run bootstrap.sh — it handles all tools, symlinks, and Docker. This is the only step you repeat on a new Mac.",
+    time: "~15 min",
+    prereq: "Dotfiles written and pushed to GitHub (Phase 1)",
+    steps: [
+      {
+        label: "Install Homebrew — the only manual prerequisite",
+        tag: "required",
+        note: "Homebrew must exist before bootstrap.sh can run, because stow itself is installed via Homebrew. This is the one command you type manually. Everything after this is automated.",
+        files: [
+          { name: "terminal",
+            code: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\n\n<span class="c"># Add to PATH immediately (Apple Silicon)</span>\neval "$(/opt/homebrew/bin/brew shellenv)"'
+          }
+        ]
+      },
+      {
+        label: "Write bootstrap.sh into dotfiles",
+        tag: "automate",
+        note: "This script lives in ~/dotfiles/bootstrap.sh. It is the restore script for every future Mac. Write it once, commit it, and it handles everything automatically from then on.",
+        files: [
+          { name: "~/dotfiles/bootstrap.sh",
+            code: '#!/usr/bin/env bash\nset -euo pipefail\n\nDOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\n\nlog()  { echo -e "\\033[1;32m▶\\033[0m  $*"; }\nok()   { echo -e "\\033[1;32m✓\\033[0m  $*"; }\nwarn() { echo -e "\\033[1;33m⚠\\033[0m  $*"; }\n\necho ""\necho "  MacBook M5 Dev Setup"\necho "  ────────────────────────────────────────"\necho ""\n\n<span class="c"># ── 1. Homebrew ───────────────────────────</span>\nlog "Checking Homebrew..."\nif ! command -v brew &>/dev/null; then\n  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\nfi\neval "$(/opt/homebrew/bin/brew shellenv)"\nok "Homebrew $(brew --version | head -1)"\n\n<span class="c"># ── 2. All tools from Brewfile ────────────</span>\nlog "Installing tools from Brewfile..."\nbrew bundle --file="$DOTFILES_DIR/Brewfile"\nok "Brewfile tools installed"\n\n<span class="c"># ── 3. Symlink dotfiles with stow ─────────</span>\nlog "Symlinking dotfiles..."\ncd "$DOTFILES_DIR"\nfor pkg in zsh git tmux nvim starship; do\n  [ -d "$pkg" ] && stow --restow --target="$HOME" "$pkg" && ok "Stowed $pkg"\ndone\n\n<span class="c"># ── 4. LazyVim ────────────────────────────</span>\nlog "Setting up Neovim / LazyVim..."\nif [ ! -d "$HOME/.config/nvim/.git" ] && [ ! -f "$HOME/.config/nvim/init.lua" ]; then\n  git clone https://github.com/LazyVim/starter /tmp/lazyvim-starter\n  <span class="c"># Copy only the base files, preserve our custom lua files already stowed</span>\n  cp -n /tmp/lazyvim-starter/init.lua "$HOME/.config/nvim/" 2>/dev/null || true\n  cp -rn /tmp/lazyvim-starter/lua/lazyvim "$HOME/.config/nvim/lua/" 2>/dev/null || true\n  rm -rf /tmp/lazyvim-starter\n  ok "LazyVim base installed — custom keymaps and plugins already in place"\nelse\n  ok "Neovim config already exists"\nfi\n\n<span class="c"># ── 5. TPM (tmux plugins) ─────────────────</span>\nlog "Installing TPM..."\nif [ ! -d "$HOME/.tmux/plugins/tpm" ]; then\n  git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"\n  ok "TPM cloned — open tmux and press Ctrl+a then Shift+I"\nelse\n  ok "TPM already installed"\nfi\n\n<span class="c"># ── 6. Colima (Docker runtime) ────────────</span>\nlog "Starting Docker runtime..."\nif ! colima status &>/dev/null 2>&1; then\n  colima start --cpu 4 --memory 8 --disk 60 --arch aarch64\n  brew services start colima\n  ok "Colima started and set to auto-start"\nelse\n  ok "Colima already running"\nfi\n\n<span class="c"># ── SSH key reminder ──────────────────────</span>\nif [ ! -f "$HOME/.ssh/id_ed25519" ]; then\n  warn "No SSH key found — see Phase 3 to generate one"\nfi\n\necho ""\necho "  ✅ Done! Open a new terminal to activate zsh + starship."\necho "  Next: Phase 3 — SSH key + gh auth login"\necho ""'
+          }
+        ]
+      },
+      {
+        label: "On a new Mac — clone and run",
+        tag: "restore",
+        note: "This is the exact flow on any new Mac from now on. Two commands and ~15 minutes of download time, then everything is restored exactly as you left it.",
+        files: [
+          { name: "terminal — new Mac restore flow",
+            code: '<span class="c"># 1. Install Homebrew (only manual step)</span>\n/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\neval "$(/opt/homebrew/bin/brew shellenv)"\n\n<span class="c"># 2. Install git so you can clone</span>\nbrew install git\n\n<span class="c"># 3. Clone your dotfiles</span>\ngit clone git@github.com:<span class="v">yourname</span>/dotfiles.git ~/dotfiles\n\n<span class="c"># 4. Run bootstrap — everything else is automated</span>\nbash ~/dotfiles/bootstrap.sh'
           }
         ]
       }
@@ -488,89 +593,38 @@ var dataMac = [
   },
   {
     icon: "🔑",
-    title: "Git + SSH",
-    sub: "Identity, aliases, and GitHub authentication",
+    title: "SSH + GitHub Auth",
+    sub: "The only step that requires manual interaction — generate your key and connect to GitHub",
     time: "~5 min",
-    prereq: "Homebrew installed (Phase 1)",
+    prereq: "Bootstrap complete (Phase 2)",
     steps: [
       {
-        label: "Configure ~/.gitconfig",
-        tag: "identity",
-        note: "Global git configuration with sensible defaults and useful aliases. Replace Your Name and you@email.com with your actual details.",
-        files: [
-          { name: "~/.gitconfig",
-            code: '[user]\n    name  = <span class="v">Your Name</span>\n    email = <span class="v">you@email.com</span>\n\n[init]\n    defaultBranch = main\n\n[core]\n    editor       = nvim\n    autocrlf     = input\n    excludesfile = ~/.gitignore_global\n\n[pull]\n    rebase = true\n\n[push]\n    autoSetupRemote = true\n\n[alias]\n    st   = status -sb\n    lg   = log --oneline --graph --decorate\n    co   = checkout\n    cm   = commit -m\n    undo = reset --soft HEAD~1\n    wip  = !git add -A && git commit -m "wip"'
-          }
-        ]
-      },
-      {
-        label: "Generate SSH key + connect GitHub",
+        label: "Generate SSH key",
         tag: "ssh",
-        note: "Ed25519 is the modern, secure choice. One key per machine is the recommended practice. After running pbcopy, go to github.com/settings/keys and paste.",
+        note: "Ed25519 is the modern secure standard. One key per machine. The --apple-use-keychain flag saves your passphrase in macOS Keychain so you never type it again.",
         files: [
           { name: "terminal",
-            code: '<span class="c"># 1. Generate Ed25519 key</span>\nssh-keygen -t ed25519 -C <span class="s">"you@email.com"</span> -f ~/.ssh/id_ed25519\n\n<span class="c"># 2. Start agent and add key (saves passphrase in macOS Keychain)</span>\neval "$(ssh-agent -s)"\nssh-add --apple-use-keychain ~/.ssh/id_ed25519\n\n<span class="c"># 3. Copy public key → paste at github.com/settings/keys</span>\npbcopy < ~/.ssh/id_ed25519.pub\n\n<span class="c"># 4. Verify connection</span>\nssh -T git@github.com\n<span class="c"># Expected: "Hi username! You\'ve successfully authenticated..."</span>'
+            code: 'ssh-keygen -t ed25519 -C <span class="s">"you@email.com"</span> -f ~/.ssh/id_ed25519\n\n<span class="c"># Add to macOS Keychain (saves passphrase permanently)</span>\neval "$(ssh-agent -s)"\nssh-add --apple-use-keychain ~/.ssh/id_ed25519'
           }
         ]
       },
       {
-        label: "Create ~/.gitignore_global",
-        tag: "clean",
-        note: "Never accidentally commit macOS/editor noise to any repo. This file is referenced in your .gitconfig above (core.excludesfile).",
+        label: "Add key to GitHub + verify",
+        tag: "required",
+        note: "pbcopy puts the public key straight into your clipboard. Paste it at github.com/settings/keys. Then verify the connection.",
         files: [
-          { name: "~/.gitignore_global",
-            code: '<span class="c"># macOS</span>\n.DS_Store\n.AppleDouble\n.LSOverride\n\n<span class="c"># Editor</span>\n.env\n.env.local\n.env.*.local\n*.swp\n*.swo\n.idea/\n.vscode/\n\n<span class="c"># Dependencies</span>\nnode_modules/\nvendor/\n\n<span class="c"># Build artifacts</span>\n.phpunit.result.cache\ndist/\nbuild/'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    icon: "⚡",
-    title: "Zsh + Aliases",
-    sub: "One ~/.zshrc with git, docker, laravel, go aliases — no Oh-My-Zsh",
-    time: "~3 min",
-    prereq: "Homebrew + Brewfile installed",
-    steps: [
-      {
-        label: "Full ~/.zshrc — all aliases in one file",
-        tag: "main config",
-        note: "All aliases organized by tool in one file. No Oh-My-Zsh overhead — just 2 lightweight plugins sourced directly. Startup time stays under 100ms.",
-        files: [
-          { name: "~/.zshrc",
-            code: '<span class="g"># ── PATH ─────────────────────────────────</span>\nexport PATH="/opt/homebrew/bin:$PATH"\nexport PATH="$HOME/.local/bin:$PATH"\nexport GOPATH="$HOME/go"\nexport PATH="$GOPATH/bin:$PATH"\nexport EDITOR="nvim"\nexport VISUAL="nvim"\n\n<span class="g"># ── HISTORY ──────────────────────────────</span>\nHISTSIZE=10000; SAVEHIST=10000; HISTFILE=~/.zsh_history\nsetopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY\n\n<span class="g"># ── PLUGINS (from Brewfile) ───────────────</span>\nsource /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh\nsource /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n<span class="g"># ── PROMPT + SMART NAV ───────────────────</span>\neval "$(starship init zsh)"\neval "$(zoxide init zsh)"\neval "$(fzf --zsh)"\n\n<span class="g"># ── GIT ──────────────────────────────────</span>\nalias g=\'git\'\nalias gs=\'git status -sb\'\nalias ga=\'git add\'\nalias gaa=\'git add .\'\nalias gc=\'git commit -m\'\nalias gca=\'git commit --amend --no-edit\'\nalias gp=\'git push\'\nalias gpl=\'git pull\'\nalias gco=\'git checkout\'\nalias gcb=\'git checkout -b\'\nalias gbr=\'git branch\'\nalias glog=\'git log --oneline --graph --decorate\'\nalias gwip=\'git add -A && git commit -m "wip"\'\nalias gunwip=\'git reset --soft HEAD~1\'\nalias gstash=\'git stash\'\nalias gpop=\'git stash pop\'\n\n<span class="g"># ── DOCKER ───────────────────────────────</span>\nalias d=\'docker\'\nalias dc=\'docker compose\'\nalias dcu=\'docker compose up -d\'\nalias dcd=\'docker compose down\'\nalias dcr=\'docker compose restart\'\nalias dcl=\'docker compose logs -f\'\nalias dps=\'docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"\'\nalias dprune=\'docker system prune -af --volumes\'\nalias ld=\'lazydocker\'\ndsh()   { docker exec -it "$1" /bin/sh; }\ndbash() { docker exec -it "$1" /bin/bash; }\n\n<span class="g"># ── LARAVEL ──────────────────────────────</span>\nalias art=\'php artisan\'\nalias artm=\'php artisan migrate\'\nalias artmf=\'php artisan migrate:fresh --seed\'\nalias artr=\'php artisan route:list\'\nalias artq=\'php artisan queue:work\'\nalias sail=\'./vendor/bin/sail\'\nalias sailup=\'./vendor/bin/sail up -d\'\nalias saildown=\'./vendor/bin/sail down\'\nalias pint=\'./vendor/bin/pint\'\nalias pest=\'./vendor/bin/pest\'\n\n<span class="g"># ── GO ────────────────────────────────────</span>\nalias gor=\'go run .\'\nalias gob=\'go build .\'\nalias got=\'go test ./...\'\nalias gotv=\'go test -v ./...\'\nalias gomod=\'go mod tidy\'\n\n<span class="g"># ── TMUX ─────────────────────────────────</span>\nalias t=\'tmux\'\nalias ta=\'tmux attach -t\'\nalias tn=\'tmux new -s\'\nalias tl=\'tmux ls\'\nalias tk=\'tmux kill-session -t\'\n\n<span class="g"># ── SYSTEM ───────────────────────────────</span>\nalias ls=\'eza --icons\'\nalias ll=\'eza -la --icons --git\'\nalias lt=\'eza --tree --level=2 --icons\'\nalias cat=\'bat\'\nalias vim=\'nvim\'\nalias vi=\'nvim\'\nalias zrc=\'nvim ~/.zshrc\'\nalias zs=\'source ~/.zshrc\'\nalias ..=\'cd ..\'\nalias ...=\'cd ../..\'\nmkcd() { mkdir -p "$1" && cd "$1"; }\ngcl()  { git clone "$1" && cd "$(basename "$1" .git)"; }'
+          { name: "terminal",
+            code: '<span class="c"># Copy public key to clipboard</span>\npbcopy < ~/.ssh/id_ed25519.pub\n\n<span class="c"># → Go to github.com/settings/keys → New SSH key → paste → Save</span>\n\n<span class="c"># Verify connection</span>\nssh -T git@github.com\n<span class="c"># Expected: "Hi yourname! You\'ve successfully authenticated..."</span>'
           }
         ]
       },
       {
-        label: "Activate config",
-        tag: "plugins",
-        note: "Zsh plugins are already installed via the Brewfile. Just reload the shell to activate everything.",
+        label: "Authenticate GitHub CLI",
+        tag: "required",
+        note: "gh CLI was installed by bootstrap via the Brewfile. Run auth login once — after this, gh repo create, gh pr create, and all gh commands work without tokens.",
         files: [
           { name: "terminal",
-            code: "# Reload shell (or open a new terminal tab)\nsource ~/.zshrc\n\n# Verify autosuggestions is working\n# Start typing a previous command — it should appear in grey"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    icon: "🖥",
-    title: "Tmux Config",
-    sub: "Persistent sessions, vim keys, mouse support, session restore",
-    time: "~5 min",
-    prereq: "tmux installed via Brewfile",
-    steps: [
-      {
-        label: "Create ~/.tmux.conf",
-        tag: "config",
-        note: "Prefix changed to Ctrl+a (easier than Ctrl+b). Vim-style pane navigation. Mouse on for scroll and click. Clean status bar with Catppuccin colors. Sessions persist across reboots via tmux-continuum.",
-        files: [
-          { name: "~/.tmux.conf",
-            code: '<span class="g"># ── PREFIX ───────────────────────────────</span>\nunbind C-b\nset -g prefix C-a\nbind C-a send-prefix\n\n<span class="g"># ── SETTINGS ─────────────────────────────</span>\nset -g mouse on\nset -g base-index 1\nsetw -g pane-base-index 1\nset -g renumber-windows on\nset -g history-limit 10000\nset -g default-terminal "tmux-256color"\nset -ga terminal-overrides ",*256col*:Tc"\n\n<span class="g"># ── VIM PANE NAV ─────────────────────────</span>\nbind h select-pane -L\nbind j select-pane -D\nbind k select-pane -U\nbind l select-pane -R\n\n<span class="g"># ── SPLITS (open in current dir) ─────────</span>\nbind | split-window -h -c "#{pane_current_path}"\nbind - split-window -v -c "#{pane_current_path}"\nbind c new-window   -c "#{pane_current_path}"\n\n<span class="g"># ── RELOAD CONFIG ────────────────────────</span>\nbind r source-file ~/.tmux.conf \\; display "Config reloaded!"\n\n<span class="g"># ── STATUS BAR (Catppuccin) ───────────────</span>\nset -g status-style        \'bg=#1e1e2e fg=#cdd6f4\'\nset -g status-left         \'#[fg=#a6e3a1,bold] #S  \'\nset -g status-right        \'#[fg=#89b4fa] %H:%M #[fg=#cba6f7] %d %b\'\nset -g window-status-current-style \'fg=#fab387,bold\'\n\n<span class="g"># ── PLUGINS (TPM) ────────────────────────</span>\nset -g @plugin \'tmux-plugins/tpm\'\nset -g @plugin \'tmux-plugins/tmux-resurrect\'   <span class="g"># save sessions</span>\nset -g @plugin \'tmux-plugins/tmux-continuum\'   <span class="g"># auto-save + restore</span>\nset -g @continuum-restore \'on\'\nrun \'~/.tmux/plugins/tpm/tpm\''
-          },
-          { name: "terminal — install TPM (plugin manager)",
-            code: "# Clone TPM\ngit clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm\n\n# Reload tmux config\ntmux source ~/.tmux.conf\n\n# Inside tmux: install plugins\n# Press:  Ctrl+a  then  Shift+I\n# Wait for plugins to install, then press Enter"
+            code: 'gh auth login\n<span class="c"># → Choose: GitHub.com → SSH → select your key → Login with browser</span>\n\n<span class="c"># Verify</span>\ngh auth status'
           }
         ]
       }
@@ -578,38 +632,57 @@ var dataMac = [
   },
   {
     icon: "🔮",
-    title: "Neovim + LazyVim",
-    sub: "Full IDE in the terminal — LSP, autocomplete, file search, formatting",
-    time: "~8 min",
-    prereq: "neovim installed via Brewfile, JetBrains Mono Nerd Font installed",
+    title: "Neovim First Launch",
+    sub: "LazyVim auto-installs all plugins on first open. Your custom keymaps and extra plugins are already in place via stow.",
+    time: "~3 min",
+    prereq: "Bootstrap complete (Phase 2)",
     steps: [
       {
-        label: "Install LazyVim starter",
+        label: "First launch — plugins auto-install",
         tag: "setup",
-        note: "LazyVim is a pre-configured Neovim distribution. You get LSP, Treesitter, Telescope, auto-formatting, and 40+ integrations out of the box — no manual plugin setup needed.",
+        note: "Bootstrap cloned the LazyVim base and stow already linked your custom lua files. Just open nvim — LazyVim downloads and compiles all plugins automatically on first launch. Wait ~1-2 min.",
         files: [
           { name: "terminal",
-            code: "# Back up existing config if any\nmv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null\nmv ~/.local/share/nvim ~/.local/share/nvim.bak 2>/dev/null\n\n# Clone LazyVim starter\ngit clone https://github.com/LazyVim/starter ~/.config/nvim\nrm -rf ~/.config/nvim/.git\n\n# Launch — plugins install automatically on first open\nnvim\n# Wait ~1-2 min for plugins to download and compile"
+            code: "nvim\n\n# LazyVim will show a progress screen as plugins install.\n# Wait for it to finish, then close and reopen nvim.\n# Everything — LSP, Treesitter, Telescope, your keymaps — will be active."
           }
         ]
       },
       {
-        label: "Custom keymaps — lua/config/keymaps.lua",
-        tag: "config",
-        note: "Add these on top of LazyVim's defaults. Ctrl+hjkl for window navigation keeps your muscle memory from tmux consistent.",
+        label: "Custom keymaps (already active via stow)",
+        tag: "reference",
+        note: "These are already in place at ~/.config/nvim/lua/config/keymaps.lua via the stow symlink. No action needed — just a reference for what's configured.",
         files: [
           { name: "~/.config/nvim/lua/config/keymaps.lua",
-            code: '<span class="k">local</span> map = vim.keymap.set\n\n<span class="g">-- Window navigation (consistent with tmux)</span>\nmap(<span class="s">"n"</span>, <span class="s">"<C-h>"</span>, <span class="s">"<C-w>h"</span>, { desc = <span class="s">"Go to left window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-j>"</span>, <span class="s">"<C-w>j"</span>, { desc = <span class="s">"Go to lower window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-k>"</span>, <span class="s">"<C-w>k"</span>, { desc = <span class="s">"Go to upper window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-l>"</span>, <span class="s">"<C-w>l"</span>, { desc = <span class="s">"Go to right window"</span> })\n\n<span class="g">-- Quick save / quit</span>\nmap(<span class="s">"n"</span>, <span class="s">"<leader>w"</span>, <span class="s">"<cmd>w<cr>"</span>,  { desc = <span class="s">"Save file"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<leader>q"</span>, <span class="s">"<cmd>qa<cr>"</span>, { desc = <span class="s">"Quit all"</span> })'
+            code: '<span class="k">local</span> map = vim.keymap.set\n\n<span class="g">-- Window navigation (Ctrl+hjkl — same as tmux panes)</span>\nmap(<span class="s">"n"</span>, <span class="s">"<C-h>"</span>, <span class="s">"<C-w>h"</span>, { desc = <span class="s">"Go to left window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-j>"</span>, <span class="s">"<C-w>j"</span>, { desc = <span class="s">"Go to lower window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-k>"</span>, <span class="s">"<C-w>k"</span>, { desc = <span class="s">"Go to upper window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-l>"</span>, <span class="s">"<C-w>l"</span>, { desc = <span class="s">"Go to right window"</span> })\n\nmap(<span class="s">"n"</span>, <span class="s">"<leader>w"</span>, <span class="s">"<cmd>w<cr>"</span>,  { desc = <span class="s">"Save"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<leader>q"</span>, <span class="s">"<cmd>qa<cr>"</span>, { desc = <span class="s">"Quit all"</span> })'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🖥",
+    title: "Tmux First Launch",
+    sub: "Open tmux and install TPM plugins — one keyboard shortcut, takes 10 seconds",
+    time: "~2 min",
+    prereq: "Bootstrap complete (Phase 2) — TPM already cloned",
+    steps: [
+      {
+        label: "Open tmux + install plugins",
+        tag: "setup",
+        note: "TPM was cloned by bootstrap.sh. Your .tmux.conf is already active via stow. Just open tmux and hit the plugin install shortcut. Session persistence and restore will be active immediately after.",
+        files: [
+          { name: "terminal",
+            code: "<span class=\"c\"># Open a new tmux session</span>\ntmux new -s main\n\n<span class=\"c\"># Inside tmux — install TPM plugins:</span>\n<span class=\"c\"># Press:  Ctrl+a  then  Shift+I</span>\n<span class=\"c\"># Wait ~10 seconds for tmux-resurrect and tmux-continuum to install</span>\n<span class=\"c\"># Press Enter when done</span>\n\n<span class=\"c\"># Verify — status bar should now show session name + time</span>"
           }
         ]
       },
       {
-        label: "Extra plugins — Go, Laravel Blade, Copilot",
-        tag: "plugins",
-        note: "Create this file to add language-specific plugins on top of LazyVim. LazyVim will merge these with its own plugin list automatically.",
+        label: "Tmux config reference",
+        tag: "reference",
+        note: "Already active via stow at ~/.tmux.conf. Key bindings at a glance.",
         files: [
-          { name: "~/.config/nvim/lua/plugins/extras.lua",
-            code: '<span class="k">return</span> {\n  <span class="g">-- Go: enhanced LSP + code actions + test runner</span>\n  { <span class="s">"ray-x/go.nvim"</span>,\n    ft = <span class="s">"go"</span>,\n    dependencies = { <span class="s">"ray-x/guihua.lua"</span> },\n    config = <span class="k">true</span> },\n\n  <span class="g">-- Laravel Blade template syntax highlighting</span>\n  { <span class="s">"jwalton512/vim-blade"</span> },\n\n  <span class="g">-- Dockerfile syntax</span>\n  { <span class="s">"ekalinin/Dockerfile.vim"</span> },\n\n  <span class="g">-- GitHub Copilot (optional — requires :Copilot auth)</span>\n  { <span class="s">"zbirenbaum/copilot.lua"</span>,\n    cmd = <span class="s">"Copilot"</span>,\n    event = <span class="s">"InsertEnter"</span>,\n    opts = { suggestion = { auto_trigger = <span class="k">true</span> } } },\n}'
+          { name: "cheatsheet",
+            code: '<span class="g"># Prefix:  Ctrl+a  (not the default Ctrl+b)</span>\n\nCtrl+a |     <span class="g"># split vertical</span>\nCtrl+a -     <span class="g"># split horizontal</span>\nCtrl+a hjkl  <span class="g"># move between panes (vim keys)</span>\nCtrl+a c     <span class="g"># new window</span>\nCtrl+a r     <span class="g"># reload config</span>\nCtrl+a d     <span class="g"># detach session</span>\n\n<span class="g"># Shell aliases (from .zshrc):</span>\ntn main      <span class="g"># tmux new -s main</span>\nta main      <span class="g"># tmux attach -t main</span>\ntl           <span class="g"># tmux ls</span>'
           }
         ]
       }
@@ -617,25 +690,25 @@ var dataMac = [
   },
   {
     icon: "🐳",
-    title: "Docker + Colima",
-    sub: "No Docker Desktop — free, lightweight, ARM-native runtime",
+    title: "Docker + Project Templates",
+    sub: "Colima is already running (bootstrap started it). Copy templates into any new project.",
     time: "~5 min",
-    prereq: "colima, docker, docker-compose installed via Brewfile",
+    prereq: "Bootstrap complete (Phase 2) — Colima already started",
     steps: [
       {
-        label: "Start Colima runtime",
+        label: "Verify Docker is working",
         tag: "required",
-        note: "Colima is your Docker VM on macOS. It's free, uses less RAM than Docker Desktop, and runs native ARM containers. The settings below are good defaults for an M5 with 16GB+ RAM.",
+        note: "Colima was started by bootstrap.sh and set to auto-start on login. Just verify it's healthy.",
         files: [
           { name: "terminal",
-            code: "# Start with M5-optimised defaults\ncolima start --cpu 4 --memory 8 --disk 60 --arch aarch64\n\n# Auto-start Colima when you log in\nbrew services start colima\n\n# Verify Docker is working\ndocker info\ndocker run --rm hello-world"
+            code: "<span class=\"c\"># Check Colima status</span>\ncolima status\n\n<span class=\"c\"># Verify Docker responds</span>\ndocker info\ndocker run --rm hello-world\n\n<span class=\"c\"># If Colima isn't running (e.g. first boot after install):</span>\ncolima start --cpu 4 --memory 8 --disk 60 --arch aarch64"
           }
         ]
       },
       {
         label: "Universal docker-compose.yml template",
         tag: "template",
-        note: "Drop this in any project root. Works for Laravel, Go, and Node — just swap the app service. All values driven by .env so nothing is hardcoded.",
+        note: "Copy this into any project root. Works for Laravel, Go, and Node. All values driven by .env so nothing is hardcoded. Swap the app service image/build per project.",
         files: [
           { name: "docker-compose.yml",
             code: 'services:\n  app:\n    build: .\n    container_name: ${APP_NAME:-app}\n    restart: unless-stopped\n    ports:\n      - "${APP_PORT:-8000}:8000"\n    volumes:\n      - .:/app\n    depends_on:\n      - db\n      - redis\n    networks:\n      - appnet\n\n  db:\n    image: mysql:8.0\n    container_name: ${APP_NAME:-app}_db\n    restart: unless-stopped\n    environment:\n      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}\n      MYSQL_DATABASE: ${DB_DATABASE:-app}\n    volumes:\n      - db_data:/var/lib/mysql\n    ports:\n      - "${DB_PORT:-3306}:3306"\n    networks:\n      - appnet\n\n  redis:\n    image: redis:alpine\n    container_name: ${APP_NAME:-app}_redis\n    networks:\n      - appnet\n\nvolumes:\n  db_data:\n\nnetworks:\n  appnet:\n    driver: bridge'
@@ -646,90 +719,32 @@ var dataMac = [
         ]
       },
       {
-        label: "Common Docker commands cheatsheet",
+        label: "Go Dockerfile — multi-stage distroless",
+        tag: "golang",
+        note: "Builder stage compiles the binary. Final image is distroless (~20MB) — no shell, no package manager, zero attack surface.",
+        files: [
+          { name: "Dockerfile",
+            code: '<span class="g"># ── Stage 1: Build ───────────────────────</span>\nFROM golang:1.22-alpine AS builder\nWORKDIR /app\nCOPY go.mod go.sum ./\nRUN go mod download\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .\n\n<span class="g"># ── Stage 2: Production ──────────────────</span>\nFROM gcr.io/distroless/static-debian12\nCOPY --from=builder /app/server /server\nEXPOSE 8000\nCMD ["/server"]'
+          }
+        ]
+      },
+      {
+        label: "Laravel Dockerfile — PHP 8.3 FPM",
+        tag: "php 8.3",
+        note: "PHP 8.3 FPM on Alpine. Composer deps cached in a layer. All Laravel caches pre-warmed on build so first request is instant.",
+        files: [
+          { name: "Dockerfile",
+            code: 'FROM php:8.3-fpm-alpine\n\nRUN docker-php-ext-install pdo pdo_mysql opcache pcntl \\\n && apk add --no-cache nginx supervisor curl\n\nCOPY --from=composer:latest /usr/bin/composer /usr/bin/composer\n\nWORKDIR /app\n\nCOPY composer.json composer.lock ./\nRUN composer install --no-dev --optimize-autoloader --no-scripts\n\nCOPY . .\n\nRUN php artisan config:cache \\\n && php artisan route:cache \\\n && php artisan view:cache \\\n && chmod -R 775 storage bootstrap/cache\n\nEXPOSE 8000\nCMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]'
+          }
+        ]
+      },
+      {
+        label: "Docker aliases cheatsheet",
         tag: "reference",
-        note: "Your ~/.zshrc already defines these aliases. This is a quick reference of what each does.",
+        note: "All defined in ~/dotfiles/zsh/.zshrc and active via stow.",
         files: [
           { name: "cheatsheet",
-            code: '<span class="g"># Start / stop project</span>\ndcu          <span class="g"># docker compose up -d</span>\ndcd          <span class="g"># docker compose down</span>\ndcr          <span class="g"># docker compose restart</span>\n\n<span class="g"># Logs / status</span>\ndcl          <span class="g"># docker compose logs -f</span>\ndps          <span class="g"># docker ps with pretty output</span>\nld           <span class="g"># lazydocker (TUI dashboard)</span>\n\n<span class="g"># Shell into a container</span>\ndsh myapp    <span class="g"># /bin/sh</span>\ndbash myapp  <span class="g"># /bin/bash</span>\n\n<span class="g"># Clean up everything</span>\ndprune       <span class="g"># docker system prune -af --volumes</span>'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    icon: "📦",
-    title: "Go & Laravel Dockerfiles",
-    sub: "Production-ready multi-stage builds optimised for Apple Silicon",
-    time: "~5 min",
-    prereq: "Docker + Colima running (Phase 6)",
-    steps: [
-      {
-        label: "Go Dockerfile — multi-stage build",
-        tag: "golang",
-        note: "Builder stage compiles the binary using full Go toolchain. Final image is distroless (~20MB) with zero attack surface — no shell, no package manager. Perfect for microservices.",
-        files: [
-          { name: "Dockerfile",
-            code: '<span class="g"># ── STAGE 1: Build ───────────────────────</span>\nFROM golang:1.22-alpine AS builder\nWORKDIR /app\n\n<span class="g"># Cache deps layer separately (only re-runs if go.mod changes)</span>\nCOPY go.mod go.sum ./\nRUN go mod download\n\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .\n\n<span class="g"># ── STAGE 2: Production ──────────────────</span>\nFROM gcr.io/distroless/static-debian12\nCOPY --from=builder /app/server /server\nEXPOSE 8000\nCMD ["/server"]'
-          }
-        ]
-      },
-      {
-        label: "Laravel Dockerfile — PHP 8.3 + FPM",
-        tag: "php 8.3",
-        note: "PHP 8.3 FPM on Alpine. Composer deps installed during build. All Laravel caches (config, route, view) pre-warmed so first request isn't slow.",
-        files: [
-          { name: "Dockerfile",
-            code: 'FROM php:8.3-fpm-alpine\n\n<span class="g"># Install extensions + web server</span>\nRUN docker-php-ext-install pdo pdo_mysql opcache pcntl \\\n && apk add --no-cache nginx supervisor curl\n\n<span class="g"># Get Composer from official image</span>\nCOPY --from=composer:latest /usr/bin/composer /usr/bin/composer\n\nWORKDIR /app\n\n<span class="g"># Install deps first (Docker layer cache)</span>\nCOPY composer.json composer.lock ./\nRUN composer install --no-dev --optimize-autoloader --no-scripts\n\nCOPY . .\n\n<span class="g"># Warm all caches</span>\nRUN php artisan config:cache \\\n && php artisan route:cache \\\n && php artisan view:cache \\\n && chmod -R 775 storage bootstrap/cache\n\nEXPOSE 8000\nCMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]'
-          }
-        ]
-      }
-    ]
-  },
-  {
-    icon: "🗂",
-    title: "Dotfiles with GNU Stow",
-    sub: "One private git repo syncs your entire environment to any Mac",
-    time: "~8 min",
-    prereq: "stow installed via Brewfile, gh CLI authenticated",
-    steps: [
-      {
-        label: "Understand the folder structure",
-        tag: "layout",
-        note: "GNU Stow creates symlinks by mirroring the directory structure inside each package folder to your $HOME. This means ~/dotfiles/zsh/.zshrc becomes a symlink at ~/.zshrc.",
-        files: [
-          { name: "structure",
-            code: "~/dotfiles/\n├── Brewfile              ← all your tools\n├── bootstrap.sh          ← new Mac restore script\n├── zsh/\n│   └── .zshrc\n├── git/\n│   ├── .gitconfig\n│   └── .gitignore_global\n├── tmux/\n│   └── .tmux.conf\n├── nvim/\n│   └── .config/nvim/\n│       └── lua/...\n└── starship/\n    └── .config/starship.toml"
-          }
-        ]
-      },
-      {
-        label: "One-time setup — move configs into dotfiles/",
-        tag: "setup",
-        note: "Run this once to reorganize your existing configs. Stow will create symlinks back to their original locations. After this, editing any file in ~/dotfiles/ changes the live config.",
-        files: [
-          { name: "terminal",
-            code: "# 1. Create the dotfiles folder structure\nmkdir -p ~/dotfiles/{zsh,git,tmux,starship}\ncd ~/dotfiles\n\n# 2. Move your configs in\nmv ~/.zshrc              zsh/.zshrc\nmv ~/.gitconfig          git/.gitconfig\nmv ~/.gitignore_global   git/.gitignore_global\nmv ~/.tmux.conf          tmux/.tmux.conf\nmkdir -p nvim/.config && mv ~/.config/nvim nvim/.config/nvim\nmkdir -p starship/.config && mv ~/.config/starship.toml starship/.config/starship.toml 2>/dev/null\n\n# 3. Stow symlinks everything back (run from ~/dotfiles)\ncd ~/dotfiles && stow */\n\n# 4. Verify — should show symlink not real file\nls -la ~/.zshrc"
-          }
-        ]
-      },
-      {
-        label: "Push to a private GitHub repo",
-        tag: "git",
-        note: "Store your dotfiles in a private repo. Never commit secrets — they live in .env files which are already in your global .gitignore.",
-        files: [
-          { name: "terminal",
-            code: "cd ~/dotfiles\ngit init\ngit add .\ngit commit -m 'init: full dev environment'\n\n# Create private repo and push (uses gh CLI from Brewfile)\ngh repo create dotfiles --private --push --source=."
-          }
-        ]
-      },
-      {
-        label: "bootstrap.sh — full restore on any new Mac",
-        tag: "automate",
-        note: "Clone your dotfiles repo on a new machine, run this script, and you're fully set up. The whole setup from scratch takes about 15 minutes — mostly install time.",
-        files: [
-          { name: "~/dotfiles/bootstrap.sh",
-            code: '#!/usr/bin/env bash\nset -euo pipefail\n\necho "🚀 Setting up new Mac..."\n\n# ── 1. Homebrew ───────────────────────────\nif ! command -v brew &>/dev/null; then\n  echo "Installing Homebrew..."\n  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\nfi\neval "$(/opt/homebrew/bin/brew shellenv)"\n\n# ── 2. All tools from Brewfile ────────────\necho "Installing tools..."\nbrew bundle --file=~/dotfiles/Brewfile\n\n# ── 3. Symlink dotfiles ───────────────────\necho "Linking dotfiles..."\ncd ~/dotfiles && stow */\n\n# ── 4. Docker runtime ────────────────────\necho "Starting Docker runtime..."\ncolima start --cpu 4 --memory 8 --disk 60 --arch aarch64\nbrew services start colima\n\necho ""\necho "✅ Done! Open a new terminal to start."\necho "Next: run \'gh auth login\' to authenticate GitHub CLI."'
+            code: '<span class="g"># Start / stop</span>\ndcu          <span class="g"># docker compose up -d</span>\ndcd          <span class="g"># docker compose down</span>\ndcr          <span class="g"># docker compose restart</span>\ndcl          <span class="g"># docker compose logs -f</span>\n\n<span class="g"># Inspect</span>\ndps          <span class="g"># pretty docker ps</span>\nld           <span class="g"># lazydocker TUI</span>\n\n<span class="g"># Shell into container</span>\ndsh myapp    <span class="g"># /bin/sh</span>\ndbash myapp  <span class="g"># /bin/bash</span>\n\n<span class="g"># Clean up</span>\ndprune       <span class="g"># docker system prune -af --volumes</span>'
           }
         ]
       }
@@ -1130,7 +1145,7 @@ var osMeta = {
     title: 'MacBook M5 Dev Setup',
     chip: 'Apple Silicon',
     subtitle: 'Complete developer environment from scratch — Homebrew to Dotfiles',
-    footer: '8 phases · ~45 min total',
+    footer: '6 phases · ~40 min total',
     storageKey: 'mac_devsetup_done',
     doneMsg: 'Setup complete! Your Mac is fully configured.'
   },
