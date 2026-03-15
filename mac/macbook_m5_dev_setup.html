@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MacBook M5 Dev Setup</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --base:    #11111b;
+    --mantle:  #181825;
+    --crust:   #1e1e2e;
+    --surface0:#313244;
+    --surface1:#45475a;
+    --overlay0:#6c7086;
+    --text:    #cdd6f4; 
+    --subtext1:#bac2de;
+    --subtext0:#a6adc8;
+    --green:   #a6e3a1;
+    --blue:    #89b4fa;
+    --mauve:   #cba6f7;
+    --peach:   #fab387;
+    --yellow:  #f9e2af;
+    --red:     #f38ba8;
+    --teal:    #94e2d5;
+    --accent:  #1D9E75;
+    --accent-dim: #0f5c44;
+    --accent-glow: rgba(29,158,117,0.15);
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', monospace;
+    --radius: 10px;
+    --sidebar: 240px;
+    --transition: 0.18s ease;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--base);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ───────────────────────────────────────────── */
+  .page-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ──────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar);
+    background: var(--mantle);
+    border-right: 1px solid var(--surface0);
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform var(--transition);
+  }
+
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--surface0); border-radius: 2px; }
+
+  .sidebar-brand {
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .brand-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--overlay0);
+    margin-top: 2px;
+  }
+
+  /* Progress ring */
+  .progress-wrap {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--surface0);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-ring-wrap {
+    flex-shrink: 0;
+    position: relative;
+    width: 36px; height: 36px;
+  }
+
+  .progress-ring-wrap svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-bg { fill: none; stroke: var(--surface0); stroke-width: 3; }
+  .progress-ring-bar { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round;
+    transition: stroke-dashoffset 0.4s ease; }
+
+  .progress-pct {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; color: var(--accent);
+  }
+
+  .progress-info { flex: 1; min-width: 0; }
+  .progress-label { font-size: 11px; color: var(--subtext0); }
+  .progress-count { font-size: 12px; font-weight: 600; color: var(--text); }
+
+  /* Nav items */
+  .sidebar-nav {
+    flex: 1;
+    padding: 8px 0;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: all var(--transition);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .nav-item:hover {
+    background: var(--surface0);
+    border-left-color: var(--surface1);
+  }
+
+  .nav-item.active {
+    background: var(--accent-glow);
+    border-left-color: var(--accent);
+  }
+
+  .nav-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--surface0);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--subtext0);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition);
+  }
+
+  .nav-item.active .nav-num {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .nav-item.done .nav-num {
+    background: var(--accent-dim);
+    color: var(--green);
+  }
+
+  .nav-item.done .nav-num::after {
+    content: '✓';
+    font-size: 9px;
+  }
+
+  .nav-item.done .nav-num span { display: none; }
+
+  .nav-text { flex: 1; min-width: 0; }
+  .nav-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-item.active .nav-title { color: var(--accent); }
+
+  .nav-steps {
+    font-size: 10px;
+    color: var(--overlay0);
+    margin-top: 1px;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--surface0);
+    font-size: 10px;
+    color: var(--overlay0);
+    text-align: center;
+  }
+
+  /* ── Main content ─────────────────────────────────────── */
+  .main {
+    margin-left: var(--sidebar);
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* ── Page header ──────────────────────────────────────── */
+  .page-header {
+    background: var(--mantle);
+    border-bottom: 1px solid var(--surface0);
+    padding: 24px 32px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .page-header-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-title .chip {
+    font-size: 10px;
+    font-weight: 600;
+    background: var(--accent-glow);
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .page-subtitle {
+    font-size: 12px;
+    color: var(--subtext0);
+    margin-top: 3px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid var(--surface1);
+    background: var(--surface0);
+    color: var(--subtext1);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font-sans);
+  }
+
+  .btn:hover { background: var(--surface1); color: var(--text); }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #18b085; border-color: #18b085; color: #fff; }
+
+  /* ── Content area ─────────────────────────────────────── */
+  .content {
+    padding: 28px 32px 60px;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* ── Phase ────────────────────────────────────────────── */
+  .phase { display: none; }
+  .phase.show { display: block; }
+
+  /* Overview card */
+  .phase-hero {
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .phase-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--accent-glow);
+    border: 1px solid var(--accent-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .phase-hero-body { flex: 1; }
+
+  .phase-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .phase-num-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+
+  .phase-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .phase-desc {
+    font-size: 13px;
+    color: var(--subtext0);
+    line-height: 1.5;
+  }
+
+  .phase-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .phase-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--overlay0);
+  }
+
+  .phase-meta-item strong { color: var(--subtext1); font-weight: 600; }
+
+  /* Prerequisites */
+  .prereq {
+    background: rgba(250, 179, 135, 0.07);
+    border: 1px solid rgba(250, 179, 135, 0.2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .prereq-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .prereq-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--peach);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 4px;
+  }
+
+  .prereq-text {
+    font-size: 12px;
+    color: var(--subtext0);
+    line-height: 1.5;
+  }
+
+  .prereq-text code {
+    font-family: var(--font-mono);
+    background: var(--surface0);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--peach);
+  }
+
+  /* Steps list header */
+  .steps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .steps-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--overlay0);
+  }
+
+  .steps-progress {
+    font-size: 11px;
+    color: var(--overlay0);
+  }
+
+  .steps-progress strong { color: var(--accent); }
+
+  /* Step card */
+  .step {
+    margin-bottom: 8px;
+    border: 1px solid var(--surface0);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color var(--transition);
+  }
+
+  .step:hover { border-color: var(--surface1); }
+  .step.open { border-color: var(--surface1); }
+  .step.completed { border-color: var(--accent-dim); }
+  .step.completed .step-head { background: rgba(29,158,117,0.04); }
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: var(--mantle);
+    transition: background var(--transition);
+    user-select: none;
+  }
+
+  .step-head:hover { background: var(--crust); }
+
+  .step-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--surface1);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: transparent;
+  }
+
+  .step-check:hover { border-color: var(--accent); background: var(--accent-glow); }
+  .step.completed .step-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .step-check-icon { font-size: 10px; color: transparent; }
+  .step.completed .step-check-icon { color: #fff; }
+
+  .step-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .step.completed .step-label { color: var(--subtext0); text-decoration: line-through; text-decoration-color: var(--surface1); }
+
+  .step-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: var(--surface0);
+    color: var(--subtext0);
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .step-tag.required    { background: rgba(243,139,168,0.1); color: var(--red); }
+  .step-tag.setup       { background: rgba(137,180,250,0.1); color: var(--blue); }
+  .step-tag.config      { background: rgba(203,166,247,0.1); color: var(--mauve); }
+  .step-tag.plugins     { background: rgba(166,227,161,0.1); color: var(--green); }
+  .step-tag.ssh         { background: rgba(249,226,175,0.1); color: var(--yellow); }
+  .step-tag.clean       { background: rgba(148,226,213,0.1); color: var(--teal); }
+  .step-tag.template    { background: rgba(250,179,135,0.1); color: var(--peach); }
+  .step-tag.golang      { background: rgba(137,180,250,0.1); color: var(--blue); }
+  .step-tag.automate    { background: rgba(166,227,161,0.1); color: var(--green); }
+  .step-tag.onecommand  { background: rgba(148,226,213,0.1); color: var(--teal); }
+  .step-tag.mainconfig  { background: rgba(203,166,247,0.1); color: var(--mauve); }
+  .step-tag.reference   { background: rgba(249,226,175,0.1); color: var(--yellow); }
+  .step-tag.php83       { background: rgba(250,179,135,0.1); color: var(--peach); }
+  .step-tag.layout      { background: rgba(137,180,250,0.1); color: var(--blue); }
+  .step-tag.git         { background: rgba(250,179,135,0.1); color: var(--peach); }
+
+  .step-chevron {
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--overlay0);
+    font-size: 11px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .step.open .step-chevron { transform: rotate(90deg); }
+
+  /* Step body */
+  .step-body {
+    display: none;
+    border-top: 1px solid var(--surface0);
+    padding: 16px;
+    background: var(--base);
+  }
+
+  .step-note {
+    font-size: 12.5px;
+    color: var(--subtext0);
+    line-height: 1.65;
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: var(--mantle);
+    border-left: 3px solid var(--surface1);
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* File block */
+  .file-block { margin-bottom: 14px; }
+  .file-block:last-child { margin-bottom: 0; }
+
+  .file-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .file-name {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--mauve);
+    background: rgba(203,166,247,0.08);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(203,166,247,0.15);
+  }
+
+  .copy-btn {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border: 1px solid var(--surface1);
+    border-radius: 5px;
+    background: var(--surface0);
+    color: var(--subtext0);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: var(--font-sans);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .copy-btn.copied { background: var(--accent-dim); border-color: var(--accent); color: var(--green); }
+
+  pre {
+    background: var(--crust);
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    line-height: 1.75;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    white-space: pre;
+    color: var(--text);
+  }
+
+  pre::-webkit-scrollbar { height: 4px; }
+  pre::-webkit-scrollbar-track { background: transparent; }
+  pre::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 2px; }
+
+  /* Syntax colors */
+  .c { color: var(--overlay0); font-style: italic; }
+  .g { color: var(--overlay0); font-style: italic; }
+  .s { color: var(--green); }
+  .k { color: var(--blue); }
+  .v { color: var(--peach); }
+  .h { color: var(--mauve); }
+
+  /* Navigation buttons */
+  .phase-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--surface0);
+  }
+
+  .phase-nav .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .phase-nav .btn-ghost {
+    background: transparent;
+    border-color: var(--surface0);
+    color: var(--subtext0);
+  }
+
+  .phase-nav .btn-ghost:hover { background: var(--surface0); color: var(--text); }
+
+  .phase-nav-center {
+    font-size: 11px;
+    color: var(--overlay0);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--surface0);
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+
+  .dot.active { background: var(--accent); }
+
+  /* ── Mobile hamburger ─────────────────────────────────── */
+  .hamburger {
+    display: none;
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 200;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text);
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 99;
+  }
+
+  /* ── Responsive ───────────────────────────────────────── */
+  @media (max-width: 768px) {
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+    }
+
+    .hamburger { display: flex; }
+    .overlay.show { display: block; }
+
+    .main { margin-left: 0; }
+
+    .page-header { padding: 14px 16px 14px 60px; }
+
+    .content { padding: 20px 16px 40px; }
+
+    .phase-hero { flex-direction: column; gap: 12px; }
+
+    .header-actions { display: none; }
+  }
+
+  /* ── Animations ───────────────────────────────────────── */
+  .phase.show { animation: fadeIn 0.2s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Scrollbar global ─────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--mantle); }
+  ::-webkit-scrollbar-thumb { background: var(--surface0); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--surface1); }
+</style>
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()" title="Menu">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="page-layout">
+  <!-- ── Sidebar ─────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">Dev Setup</div>
+      <div class="brand-sub">MacBook M5 · Apple Silicon</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-ring-wrap">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <circle class="progress-ring-bg" cx="18" cy="18" r="14"/>
+          <circle class="progress-ring-bar" id="progressBar" cx="18" cy="18" r="14"
+            stroke-dasharray="87.96"
+            stroke-dashoffset="87.96"/>
+        </svg>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+      <div class="progress-info">
+        <div class="progress-label">Overall Progress</div>
+        <div class="progress-count" id="progressCount">0 of 0 steps done</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+
+    <div class="sidebar-footer">
+      8 phases · ~45 min total
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────── -->
+  <div class="main">
+    <header class="page-header">
+      <div class="page-header-inner">
+        <div>
+          <div class="page-title">
+            MacBook M5 Dev Setup
+            <span class="chip">Apple Silicon</span>
+          </div>
+          <div class="page-subtitle">Complete developer environment from scratch — Homebrew to Dotfiles</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn" onclick="expandAll()">Expand All</button>
+          <button class="btn btn-primary" onclick="resetProgress()">Reset Progress</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="content"></main>
+  </div>
+</div>
+
+<script>
+var data = [
+  {
+    icon: "🍺",
+    title: "Homebrew & Core Tools",
+    sub: "Package manager + all CLI tools declared in one Brewfile",
+    time: "~5 min",
+    prereq: null,
+    steps: [
+      {
+        label: "Install Homebrew",
+        tag: "required",
+        note: "The foundation of every macOS dev setup. Run this first on any new Mac. It installs to /opt/homebrew on Apple Silicon — different from Intel Macs.",
+        files: [
+          { name: "terminal",
+            code: '<span class="c"># Install Homebrew (Apple Silicon path)</span>\n/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\n\n<span class="c"># Add to PATH (required for Apple Silicon)</span>\necho \'eval "$(/opt/homebrew/bin/brew shellenv)"\' >> ~/.zprofile\neval "$(/opt/homebrew/bin/brew shellenv)"\n\n<span class="c"># Verify</span>\nbrew --version'
+          }
+        ]
+      },
+      {
+        label: "Create ~/Brewfile — install everything at once",
+        tag: "one command",
+        note: "One file to declare all your tools declaratively. Run brew bundle and everything installs in one shot. Commit this to your dotfiles repo so you can restore any machine.",
+        files: [
+          { name: "~/Brewfile",
+            code: '<span class="h">tap</span> <span class="s">"homebrew/bundle"</span>\n\n<span class="g"># ── Core CLI ──────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"git"</span>\n<span class="h">brew</span> <span class="s">"gh"</span>              <span class="g"># GitHub CLI</span>\n<span class="h">brew</span> <span class="s">"tmux"</span>\n<span class="h">brew</span> <span class="s">"neovim"</span>\n<span class="h">brew</span> <span class="s">"stow"</span>             <span class="g"># dotfile symlink manager</span>\n<span class="h">brew</span> <span class="s">"ripgrep"</span>           <span class="g"># fast grep</span>\n<span class="h">brew</span> <span class="s">"fd"</span>               <span class="g"># fast find</span>\n<span class="h">brew</span> <span class="s">"fzf"</span>              <span class="g"># fuzzy finder</span>\n<span class="h">brew</span> <span class="s">"bat"</span>              <span class="g"># better cat</span>\n<span class="h">brew</span> <span class="s">"eza"</span>              <span class="g"># better ls</span>\n<span class="h">brew</span> <span class="s">"zoxide"</span>           <span class="g"># smart cd</span>\n<span class="h">brew</span> <span class="s">"starship"</span>         <span class="g"># prompt</span>\n\n<span class="g"># ── Languages ─────────────────────────────</span>\n<span class="h">brew</span> <span class="s">"go"</span>\n<span class="h">brew</span> <span class="s">"php"</span>\n<span class="h">brew</span> <span class="s">"composer"</span>\n<span class="h">brew</span> <span class="s">"node"</span>\n\n<span class="g"># ── Zsh plugins ───────────────────────────</span>\n<span class="h">brew</span> <span class="s">"zsh-autosuggestions"</span>\n<span class="h">brew</span> <span class="s">"zsh-syntax-highlighting"</span>\n\n<span class="g"># ── Docker (no Docker Desktop) ────────────</span>\n<span class="h">brew</span> <span class="s">"colima"</span>\n<span class="h">brew</span> <span class="s">"docker"</span>\n<span class="h">brew</span> <span class="s">"docker-compose"</span>\n<span class="h">brew</span> <span class="s">"lazydocker"</span>\n\n<span class="g"># ── Fonts + Terminal ──────────────────────</span>\n<span class="h">cask</span> <span class="s">"font-jetbrains-mono-nerd-font"</span>\n<span class="h">cask</span> <span class="s">"wezterm"</span>'
+          },
+          { name: "terminal — install everything",
+            code: "brew bundle --file=~/Brewfile\n\n# This installs all tools in one go. Takes 3-8 min depending on internet speed."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🔑",
+    title: "Git + SSH",
+    sub: "Identity, aliases, and GitHub authentication",
+    time: "~5 min",
+    prereq: "Homebrew installed (Phase 1)",
+    steps: [
+      {
+        label: "Configure ~/.gitconfig",
+        tag: "identity",
+        note: "Global git configuration with sensible defaults and useful aliases. Replace Your Name and you@email.com with your actual details.",
+        files: [
+          { name: "~/.gitconfig",
+            code: '[user]\n    name  = <span class="v">Your Name</span>\n    email = <span class="v">you@email.com</span>\n\n[init]\n    defaultBranch = main\n\n[core]\n    editor       = nvim\n    autocrlf     = input\n    excludesfile = ~/.gitignore_global\n\n[pull]\n    rebase = true\n\n[push]\n    autoSetupRemote = true\n\n[alias]\n    st   = status -sb\n    lg   = log --oneline --graph --decorate\n    co   = checkout\n    cm   = commit -m\n    undo = reset --soft HEAD~1\n    wip  = !git add -A && git commit -m "wip"'
+          }
+        ]
+      },
+      {
+        label: "Generate SSH key + connect GitHub",
+        tag: "ssh",
+        note: "Ed25519 is the modern, secure choice. One key per machine is the recommended practice. After running pbcopy, go to github.com/settings/keys and paste.",
+        files: [
+          { name: "terminal",
+            code: '<span class="c"># 1. Generate Ed25519 key</span>\nssh-keygen -t ed25519 -C <span class="s">"you@email.com"</span> -f ~/.ssh/id_ed25519\n\n<span class="c"># 2. Start agent and add key (saves passphrase in macOS Keychain)</span>\neval "$(ssh-agent -s)"\nssh-add --apple-use-keychain ~/.ssh/id_ed25519\n\n<span class="c"># 3. Copy public key → paste at github.com/settings/keys</span>\npbcopy < ~/.ssh/id_ed25519.pub\n\n<span class="c"># 4. Verify connection</span>\nssh -T git@github.com\n<span class="c"># Expected: "Hi username! You\'ve successfully authenticated..."</span>'
+          }
+        ]
+      },
+      {
+        label: "Create ~/.gitignore_global",
+        tag: "clean",
+        note: "Never accidentally commit macOS/editor noise to any repo. This file is referenced in your .gitconfig above (core.excludesfile).",
+        files: [
+          { name: "~/.gitignore_global",
+            code: '<span class="c"># macOS</span>\n.DS_Store\n.AppleDouble\n.LSOverride\n\n<span class="c"># Editor</span>\n.env\n.env.local\n.env.*.local\n*.swp\n*.swo\n.idea/\n.vscode/\n\n<span class="c"># Dependencies</span>\nnode_modules/\nvendor/\n\n<span class="c"># Build artifacts</span>\n.phpunit.result.cache\ndist/\nbuild/'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "⚡",
+    title: "Zsh + Aliases",
+    sub: "One ~/.zshrc with git, docker, laravel, go aliases — no Oh-My-Zsh",
+    time: "~3 min",
+    prereq: "Homebrew + Brewfile installed",
+    steps: [
+      {
+        label: "Full ~/.zshrc — all aliases in one file",
+        tag: "main config",
+        note: "All aliases organized by tool in one file. No Oh-My-Zsh overhead — just 2 lightweight plugins sourced directly. Startup time stays under 100ms.",
+        files: [
+          { name: "~/.zshrc",
+            code: '<span class="g"># ── PATH ─────────────────────────────────</span>\nexport PATH="/opt/homebrew/bin:$PATH"\nexport PATH="$HOME/.local/bin:$PATH"\nexport GOPATH="$HOME/go"\nexport PATH="$GOPATH/bin:$PATH"\nexport EDITOR="nvim"\nexport VISUAL="nvim"\n\n<span class="g"># ── HISTORY ──────────────────────────────</span>\nHISTSIZE=10000; SAVEHIST=10000; HISTFILE=~/.zsh_history\nsetopt HIST_IGNORE_DUPS HIST_IGNORE_SPACE SHARE_HISTORY\n\n<span class="g"># ── PLUGINS (from Brewfile) ───────────────</span>\nsource /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh\nsource /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n\n<span class="g"># ── PROMPT + SMART NAV ───────────────────</span>\neval "$(starship init zsh)"\neval "$(zoxide init zsh)"\neval "$(fzf --zsh)"\n\n<span class="g"># ── GIT ──────────────────────────────────</span>\nalias g=\'git\'\nalias gs=\'git status -sb\'\nalias ga=\'git add\'\nalias gaa=\'git add .\'\nalias gc=\'git commit -m\'\nalias gca=\'git commit --amend --no-edit\'\nalias gp=\'git push\'\nalias gpl=\'git pull\'\nalias gco=\'git checkout\'\nalias gcb=\'git checkout -b\'\nalias gbr=\'git branch\'\nalias glog=\'git log --oneline --graph --decorate\'\nalias gwip=\'git add -A && git commit -m "wip"\'\nalias gunwip=\'git reset --soft HEAD~1\'\nalias gstash=\'git stash\'\nalias gpop=\'git stash pop\'\n\n<span class="g"># ── DOCKER ───────────────────────────────</span>\nalias d=\'docker\'\nalias dc=\'docker compose\'\nalias dcu=\'docker compose up -d\'\nalias dcd=\'docker compose down\'\nalias dcr=\'docker compose restart\'\nalias dcl=\'docker compose logs -f\'\nalias dps=\'docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"\'\nalias dprune=\'docker system prune -af --volumes\'\nalias ld=\'lazydocker\'\ndsh()   { docker exec -it "$1" /bin/sh; }\ndbash() { docker exec -it "$1" /bin/bash; }\n\n<span class="g"># ── LARAVEL ──────────────────────────────</span>\nalias art=\'php artisan\'\nalias artm=\'php artisan migrate\'\nalias artmf=\'php artisan migrate:fresh --seed\'\nalias artr=\'php artisan route:list\'\nalias artq=\'php artisan queue:work\'\nalias sail=\'./vendor/bin/sail\'\nalias sailup=\'./vendor/bin/sail up -d\'\nalias saildown=\'./vendor/bin/sail down\'\nalias pint=\'./vendor/bin/pint\'\nalias pest=\'./vendor/bin/pest\'\n\n<span class="g"># ── GO ────────────────────────────────────</span>\nalias gor=\'go run .\'\nalias gob=\'go build .\'\nalias got=\'go test ./...\'\nalias gotv=\'go test -v ./...\'\nalias gomod=\'go mod tidy\'\n\n<span class="g"># ── TMUX ─────────────────────────────────</span>\nalias t=\'tmux\'\nalias ta=\'tmux attach -t\'\nalias tn=\'tmux new -s\'\nalias tl=\'tmux ls\'\nalias tk=\'tmux kill-session -t\'\n\n<span class="g"># ── SYSTEM ───────────────────────────────</span>\nalias ls=\'eza --icons\'\nalias ll=\'eza -la --icons --git\'\nalias lt=\'eza --tree --level=2 --icons\'\nalias cat=\'bat\'\nalias vim=\'nvim\'\nalias vi=\'nvim\'\nalias zrc=\'nvim ~/.zshrc\'\nalias zs=\'source ~/.zshrc\'\nalias ..=\'cd ..\'\nalias ...=\'cd ../..\'\nmkcd() { mkdir -p "$1" && cd "$1"; }\ngcl()  { git clone "$1" && cd "$(basename "$1" .git)"; }'
+          }
+        ]
+      },
+      {
+        label: "Activate config",
+        tag: "plugins",
+        note: "Zsh plugins are already installed via the Brewfile. Just reload the shell to activate everything.",
+        files: [
+          { name: "terminal",
+            code: "# Reload shell (or open a new terminal tab)\nsource ~/.zshrc\n\n# Verify autosuggestions is working\n# Start typing a previous command — it should appear in grey"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🖥",
+    title: "Tmux Config",
+    sub: "Persistent sessions, vim keys, mouse support, session restore",
+    time: "~5 min",
+    prereq: "tmux installed via Brewfile",
+    steps: [
+      {
+        label: "Create ~/.tmux.conf",
+        tag: "config",
+        note: "Prefix changed to Ctrl+a (easier than Ctrl+b). Vim-style pane navigation. Mouse on for scroll and click. Clean status bar with Catppuccin colors. Sessions persist across reboots via tmux-continuum.",
+        files: [
+          { name: "~/.tmux.conf",
+            code: '<span class="g"># ── PREFIX ───────────────────────────────</span>\nunbind C-b\nset -g prefix C-a\nbind C-a send-prefix\n\n<span class="g"># ── SETTINGS ─────────────────────────────</span>\nset -g mouse on\nset -g base-index 1\nsetw -g pane-base-index 1\nset -g renumber-windows on\nset -g history-limit 10000\nset -g default-terminal "tmux-256color"\nset -ga terminal-overrides ",*256col*:Tc"\n\n<span class="g"># ── VIM PANE NAV ─────────────────────────</span>\nbind h select-pane -L\nbind j select-pane -D\nbind k select-pane -U\nbind l select-pane -R\n\n<span class="g"># ── SPLITS (open in current dir) ─────────</span>\nbind | split-window -h -c "#{pane_current_path}"\nbind - split-window -v -c "#{pane_current_path}"\nbind c new-window   -c "#{pane_current_path}"\n\n<span class="g"># ── RELOAD CONFIG ────────────────────────</span>\nbind r source-file ~/.tmux.conf \\; display "Config reloaded!"\n\n<span class="g"># ── STATUS BAR (Catppuccin) ───────────────</span>\nset -g status-style        \'bg=#1e1e2e fg=#cdd6f4\'\nset -g status-left         \'#[fg=#a6e3a1,bold] #S  \'\nset -g status-right        \'#[fg=#89b4fa] %H:%M #[fg=#cba6f7] %d %b\'\nset -g window-status-current-style \'fg=#fab387,bold\'\n\n<span class="g"># ── PLUGINS (TPM) ────────────────────────</span>\nset -g @plugin \'tmux-plugins/tpm\'\nset -g @plugin \'tmux-plugins/tmux-resurrect\'   <span class="g"># save sessions</span>\nset -g @plugin \'tmux-plugins/tmux-continuum\'   <span class="g"># auto-save + restore</span>\nset -g @continuum-restore \'on\'\nrun \'~/.tmux/plugins/tpm/tpm\''
+          },
+          { name: "terminal — install TPM (plugin manager)",
+            code: "# Clone TPM\ngit clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm\n\n# Reload tmux config\ntmux source ~/.tmux.conf\n\n# Inside tmux: install plugins\n# Press:  Ctrl+a  then  Shift+I\n# Wait for plugins to install, then press Enter"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🔮",
+    title: "Neovim + LazyVim",
+    sub: "Full IDE in the terminal — LSP, autocomplete, file search, formatting",
+    time: "~8 min",
+    prereq: "neovim installed via Brewfile, JetBrains Mono Nerd Font installed",
+    steps: [
+      {
+        label: "Install LazyVim starter",
+        tag: "setup",
+        note: "LazyVim is a pre-configured Neovim distribution. You get LSP, Treesitter, Telescope, auto-formatting, and 40+ integrations out of the box — no manual plugin setup needed.",
+        files: [
+          { name: "terminal",
+            code: "# Back up existing config if any\nmv ~/.config/nvim ~/.config/nvim.bak 2>/dev/null\nmv ~/.local/share/nvim ~/.local/share/nvim.bak 2>/dev/null\n\n# Clone LazyVim starter\ngit clone https://github.com/LazyVim/starter ~/.config/nvim\nrm -rf ~/.config/nvim/.git\n\n# Launch — plugins install automatically on first open\nnvim\n# Wait ~1-2 min for plugins to download and compile"
+          }
+        ]
+      },
+      {
+        label: "Custom keymaps — lua/config/keymaps.lua",
+        tag: "config",
+        note: "Add these on top of LazyVim's defaults. Ctrl+hjkl for window navigation keeps your muscle memory from tmux consistent.",
+        files: [
+          { name: "~/.config/nvim/lua/config/keymaps.lua",
+            code: '<span class="k">local</span> map = vim.keymap.set\n\n<span class="g">-- Window navigation (consistent with tmux)</span>\nmap(<span class="s">"n"</span>, <span class="s">"<C-h>"</span>, <span class="s">"<C-w>h"</span>, { desc = <span class="s">"Go to left window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-j>"</span>, <span class="s">"<C-w>j"</span>, { desc = <span class="s">"Go to lower window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-k>"</span>, <span class="s">"<C-w>k"</span>, { desc = <span class="s">"Go to upper window"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<C-l>"</span>, <span class="s">"<C-w>l"</span>, { desc = <span class="s">"Go to right window"</span> })\n\n<span class="g">-- Quick save / quit</span>\nmap(<span class="s">"n"</span>, <span class="s">"<leader>w"</span>, <span class="s">"<cmd>w<cr>"</span>,  { desc = <span class="s">"Save file"</span> })\nmap(<span class="s">"n"</span>, <span class="s">"<leader>q"</span>, <span class="s">"<cmd>qa<cr>"</span>, { desc = <span class="s">"Quit all"</span> })'
+          }
+        ]
+      },
+      {
+        label: "Extra plugins — Go, Laravel Blade, Copilot",
+        tag: "plugins",
+        note: "Create this file to add language-specific plugins on top of LazyVim. LazyVim will merge these with its own plugin list automatically.",
+        files: [
+          { name: "~/.config/nvim/lua/plugins/extras.lua",
+            code: '<span class="k">return</span> {\n  <span class="g">-- Go: enhanced LSP + code actions + test runner</span>\n  { <span class="s">"ray-x/go.nvim"</span>,\n    ft = <span class="s">"go"</span>,\n    dependencies = { <span class="s">"ray-x/guihua.lua"</span> },\n    config = <span class="k">true</span> },\n\n  <span class="g">-- Laravel Blade template syntax highlighting</span>\n  { <span class="s">"jwalton512/vim-blade"</span> },\n\n  <span class="g">-- Dockerfile syntax</span>\n  { <span class="s">"ekalinin/Dockerfile.vim"</span> },\n\n  <span class="g">-- GitHub Copilot (optional — requires :Copilot auth)</span>\n  { <span class="s">"zbirenbaum/copilot.lua"</span>,\n    cmd = <span class="s">"Copilot"</span>,\n    event = <span class="s">"InsertEnter"</span>,\n    opts = { suggestion = { auto_trigger = <span class="k">true</span> } } },\n}'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🐳",
+    title: "Docker + Colima",
+    sub: "No Docker Desktop — free, lightweight, ARM-native runtime",
+    time: "~5 min",
+    prereq: "colima, docker, docker-compose installed via Brewfile",
+    steps: [
+      {
+        label: "Start Colima runtime",
+        tag: "required",
+        note: "Colima is your Docker VM on macOS. It's free, uses less RAM than Docker Desktop, and runs native ARM containers. The settings below are good defaults for an M5 with 16GB+ RAM.",
+        files: [
+          { name: "terminal",
+            code: "# Start with M5-optimised defaults\ncolima start --cpu 4 --memory 8 --disk 60 --arch aarch64\n\n# Auto-start Colima when you log in\nbrew services start colima\n\n# Verify Docker is working\ndocker info\ndocker run --rm hello-world"
+          }
+        ]
+      },
+      {
+        label: "Universal docker-compose.yml template",
+        tag: "template",
+        note: "Drop this in any project root. Works for Laravel, Go, and Node — just swap the app service. All values driven by .env so nothing is hardcoded.",
+        files: [
+          { name: "docker-compose.yml",
+            code: 'services:\n  app:\n    build: .\n    container_name: ${APP_NAME:-app}\n    restart: unless-stopped\n    ports:\n      - "${APP_PORT:-8000}:8000"\n    volumes:\n      - .:/app\n    depends_on:\n      - db\n      - redis\n    networks:\n      - appnet\n\n  db:\n    image: mysql:8.0\n    container_name: ${APP_NAME:-app}_db\n    restart: unless-stopped\n    environment:\n      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}\n      MYSQL_DATABASE: ${DB_DATABASE:-app}\n    volumes:\n      - db_data:/var/lib/mysql\n    ports:\n      - "${DB_PORT:-3306}:3306"\n    networks:\n      - appnet\n\n  redis:\n    image: redis:alpine\n    container_name: ${APP_NAME:-app}_redis\n    networks:\n      - appnet\n\nvolumes:\n  db_data:\n\nnetworks:\n  appnet:\n    driver: bridge'
+          },
+          { name: ".env",
+            code: "APP_NAME=myapp\nAPP_PORT=8000\nDB_DATABASE=myapp\nDB_PASSWORD=secret\nDB_PORT=3306"
+          }
+        ]
+      },
+      {
+        label: "Common Docker commands cheatsheet",
+        tag: "reference",
+        note: "Your ~/.zshrc already defines these aliases. This is a quick reference of what each does.",
+        files: [
+          { name: "cheatsheet",
+            code: '<span class="g"># Start / stop project</span>\ndcu          <span class="g"># docker compose up -d</span>\ndcd          <span class="g"># docker compose down</span>\ndcr          <span class="g"># docker compose restart</span>\n\n<span class="g"># Logs / status</span>\ndcl          <span class="g"># docker compose logs -f</span>\ndps          <span class="g"># docker ps with pretty output</span>\nld           <span class="g"># lazydocker (TUI dashboard)</span>\n\n<span class="g"># Shell into a container</span>\ndsh myapp    <span class="g"># /bin/sh</span>\ndbash myapp  <span class="g"># /bin/bash</span>\n\n<span class="g"># Clean up everything</span>\ndprune       <span class="g"># docker system prune -af --volumes</span>'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "📦",
+    title: "Go & Laravel Dockerfiles",
+    sub: "Production-ready multi-stage builds optimised for Apple Silicon",
+    time: "~5 min",
+    prereq: "Docker + Colima running (Phase 6)",
+    steps: [
+      {
+        label: "Go Dockerfile — multi-stage build",
+        tag: "golang",
+        note: "Builder stage compiles the binary using full Go toolchain. Final image is distroless (~20MB) with zero attack surface — no shell, no package manager. Perfect for microservices.",
+        files: [
+          { name: "Dockerfile",
+            code: '<span class="g"># ── STAGE 1: Build ───────────────────────</span>\nFROM golang:1.22-alpine AS builder\nWORKDIR /app\n\n<span class="g"># Cache deps layer separately (only re-runs if go.mod changes)</span>\nCOPY go.mod go.sum ./\nRUN go mod download\n\nCOPY . .\nRUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .\n\n<span class="g"># ── STAGE 2: Production ──────────────────</span>\nFROM gcr.io/distroless/static-debian12\nCOPY --from=builder /app/server /server\nEXPOSE 8000\nCMD ["/server"]'
+          }
+        ]
+      },
+      {
+        label: "Laravel Dockerfile — PHP 8.3 + FPM",
+        tag: "php 8.3",
+        note: "PHP 8.3 FPM on Alpine. Composer deps installed during build. All Laravel caches (config, route, view) pre-warmed so first request isn't slow.",
+        files: [
+          { name: "Dockerfile",
+            code: 'FROM php:8.3-fpm-alpine\n\n<span class="g"># Install extensions + web server</span>\nRUN docker-php-ext-install pdo pdo_mysql opcache pcntl \\\n && apk add --no-cache nginx supervisor curl\n\n<span class="g"># Get Composer from official image</span>\nCOPY --from=composer:latest /usr/bin/composer /usr/bin/composer\n\nWORKDIR /app\n\n<span class="g"># Install deps first (Docker layer cache)</span>\nCOPY composer.json composer.lock ./\nRUN composer install --no-dev --optimize-autoloader --no-scripts\n\nCOPY . .\n\n<span class="g"># Warm all caches</span>\nRUN php artisan config:cache \\\n && php artisan route:cache \\\n && php artisan view:cache \\\n && chmod -R 775 storage bootstrap/cache\n\nEXPOSE 8000\nCMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    icon: "🗂",
+    title: "Dotfiles with GNU Stow",
+    sub: "One private git repo syncs your entire environment to any Mac",
+    time: "~8 min",
+    prereq: "stow installed via Brewfile, gh CLI authenticated",
+    steps: [
+      {
+        label: "Understand the folder structure",
+        tag: "layout",
+        note: "GNU Stow creates symlinks by mirroring the directory structure inside each package folder to your $HOME. This means ~/dotfiles/zsh/.zshrc becomes a symlink at ~/.zshrc.",
+        files: [
+          { name: "structure",
+            code: "~/dotfiles/\n├── Brewfile              ← all your tools\n├── bootstrap.sh          ← new Mac restore script\n├── zsh/\n│   └── .zshrc\n├── git/\n│   ├── .gitconfig\n│   └── .gitignore_global\n├── tmux/\n│   └── .tmux.conf\n├── nvim/\n│   └── .config/nvim/\n│       └── lua/...\n└── starship/\n    └── .config/starship.toml"
+          }
+        ]
+      },
+      {
+        label: "One-time setup — move configs into dotfiles/",
+        tag: "setup",
+        note: "Run this once to reorganize your existing configs. Stow will create symlinks back to their original locations. After this, editing any file in ~/dotfiles/ changes the live config.",
+        files: [
+          { name: "terminal",
+            code: "# 1. Create the dotfiles folder structure\nmkdir -p ~/dotfiles/{zsh,git,tmux,starship}\ncd ~/dotfiles\n\n# 2. Move your configs in\nmv ~/.zshrc              zsh/.zshrc\nmv ~/.gitconfig          git/.gitconfig\nmv ~/.gitignore_global   git/.gitignore_global\nmv ~/.tmux.conf          tmux/.tmux.conf\nmkdir -p nvim/.config && mv ~/.config/nvim nvim/.config/nvim\nmkdir -p starship/.config && mv ~/.config/starship.toml starship/.config/starship.toml 2>/dev/null\n\n# 3. Stow symlinks everything back (run from ~/dotfiles)\ncd ~/dotfiles && stow */\n\n# 4. Verify — should show symlink not real file\nls -la ~/.zshrc"
+          }
+        ]
+      },
+      {
+        label: "Push to a private GitHub repo",
+        tag: "git",
+        note: "Store your dotfiles in a private repo. Never commit secrets — they live in .env files which are already in your global .gitignore.",
+        files: [
+          { name: "terminal",
+            code: "cd ~/dotfiles\ngit init\ngit add .\ngit commit -m 'init: full dev environment'\n\n# Create private repo and push (uses gh CLI from Brewfile)\ngh repo create dotfiles --private --push --source=."
+          }
+        ]
+      },
+      {
+        label: "bootstrap.sh — full restore on any new Mac",
+        tag: "automate",
+        note: "Clone your dotfiles repo on a new machine, run this script, and you're fully set up. The whole setup from scratch takes about 15 minutes — mostly install time.",
+        files: [
+          { name: "~/dotfiles/bootstrap.sh",
+            code: '#!/usr/bin/env bash\nset -euo pipefail\n\necho "🚀 Setting up new Mac..."\n\n# ── 1. Homebrew ───────────────────────────\nif ! command -v brew &>/dev/null; then\n  echo "Installing Homebrew..."\n  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\nfi\neval "$(/opt/homebrew/bin/brew shellenv)"\n\n# ── 2. All tools from Brewfile ────────────\necho "Installing tools..."\nbrew bundle --file=~/dotfiles/Brewfile\n\n# ── 3. Symlink dotfiles ───────────────────\necho "Linking dotfiles..."\ncd ~/dotfiles && stow */\n\n# ── 4. Docker runtime ────────────────────\necho "Starting Docker runtime..."\ncolima start --cpu 4 --memory 8 --disk 60 --arch aarch64\nbrew services start colima\n\necho ""\necho "✅ Done! Open a new terminal to start."\necho "Next: run \'gh auth login\' to authenticate GitHub CLI."'
+          }
+        ]
+      }
+    ]
+  }
+];
+
+// ── State ──────────────────────────────────────────────────────
+var currentPhase = 0;
+var totalSteps = 0;
+var completedSet = new Set();
+
+// Load saved progress
+try {
+  var saved = JSON.parse(localStorage.getItem('devsetup_done') || '[]');
+  saved.forEach(function(k){ completedSet.add(k); });
+} catch(e) {}
+
+function saveProgress() {
+  localStorage.setItem('devsetup_done', JSON.stringify(Array.from(completedSet)));
+}
+
+function stepKey(pi, si) { return pi + '_' + si; }
+
+// ── Build UI ───────────────────────────────────────────────────
+function buildUI() {
+  // Count total steps
+  data.forEach(function(p){ totalSteps += p.steps.length; });
+
+  buildSidebar();
+  buildContent();
+  updateProgress();
+  showPhase(0, false);
+}
+
+function buildSidebar() {
+  var nav = document.getElementById('sidebarNav');
+  var html = '';
+  data.forEach(function(phase, pi) {
+    var done = countDone(pi);
+    var isDone = done === phase.steps.length;
+    html += '<div class="nav-item' + (isDone ? ' done' : '') + '" id="navItem' + pi + '" onclick="showPhase(' + pi + ')">';
+    html += '<div class="nav-num"><span>' + (pi+1) + '</span></div>';
+    html += '<div class="nav-text">';
+    html += '<div class="nav-title">' + phase.title + '</div>';
+    html += '<div class="nav-steps">' + phase.steps.length + ' steps · ' + phase.time + '</div>';
+    html += '</div></div>';
+  });
+  nav.innerHTML = html;
+}
+
+function buildContent() {
+  var content = document.getElementById('content');
+  var html = '';
+
+  data.forEach(function(phase, pi) {
+    html += '<div class="phase" id="ph' + pi + '">';
+
+    // Hero card
+    html += '<div class="phase-hero">';
+    html += '<div class="phase-icon">' + phase.icon + '</div>';
+    html += '<div class="phase-hero-body">';
+    html += '<div class="phase-hero-top">';
+    html += '<span class="phase-num-badge">Phase ' + (pi+1) + ' of ' + data.length + '</span>';
+    html += '</div>';
+    html += '<div class="phase-title">' + phase.title + '</div>';
+    html += '<div class="phase-desc">' + phase.sub + '</div>';
+    html += '<div class="phase-meta">';
+    html += '<div class="phase-meta-item">⏱ <strong>' + phase.time + '</strong></div>';
+    html += '<div class="phase-meta-item">📋 <strong>' + phase.steps.length + ' steps</strong></div>';
+    if (phase.prereq) {
+      html += '<div class="phase-meta-item">🔗 <strong>Requires:</strong> ' + phase.prereq + '</div>';
+    }
+    html += '</div></div></div>';
+
+    // Prereq callout
+    if (phase.prereq) {
+      html += '<div class="prereq">';
+      html += '<div class="prereq-icon">⚠️</div>';
+      html += '<div><div class="prereq-title">Before you start</div>';
+      html += '<div class="prereq-text">Make sure you have completed: <code>' + phase.prereq + '</code></div></div>';
+      html += '</div>';
+    }
+
+    // Steps
+    html += '<div class="steps-header">';
+    html += '<div class="steps-label">Steps</div>';
+    html += '<div class="steps-progress" id="stepProgress' + pi + '"></div>';
+    html += '</div>';
+
+    phase.steps.forEach(function(step, si) {
+      var key = stepKey(pi, si);
+      var isDone = completedSet.has(key);
+      var tagClass = (step.tag || '').replace(/[^a-z0-9]/g,'').toLowerCase();
+
+      html += '<div class="step' + (isDone ? ' completed' : '') + '" id="step' + pi + si + '">';
+
+      // Head
+      html += '<div class="step-head" onclick="toggleStep(event,' + pi + ',' + si + ')">';
+      html += '<div class="step-check" onclick="event.stopPropagation();toggleDone(' + pi + ',' + si + ')" title="Mark as done">';
+      html += '<span class="step-check-icon">✓</span>';
+      html += '</div>';
+      html += '<span class="step-label">' + step.label + '</span>';
+      if (step.tag) {
+        html += '<span class="step-tag ' + tagClass + '">' + step.tag + '</span>';
+      }
+      html += '<span class="step-chevron">▶</span>';
+      html += '</div>';
+
+      // Body
+      html += '<div class="step-body" style="display:none">';
+      html += '<div class="step-note">' + step.note + '</div>';
+
+      step.files.forEach(function(f) {
+        var plain = f.code.replace(/<[^>]+>/g,'');
+        var escaped = plain.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
+        html += '<div class="file-block">';
+        html += '<div class="file-bar">';
+        html += '<span class="file-name">' + f.name + '</span>';
+        html += '<button class="copy-btn" onclick="copyCode(this,\'' + escaped + '\')" id="cpbtn' + pi + si + '">copy</button>';
+        html += '</div>';
+        html += '<pre>' + f.code + '</pre>';
+        html += '</div>';
+      });
+
+      html += '</div>'; // step-body
+      html += '</div>'; // step
+    });
+
+    // Phase nav
+    html += '<div class="phase-nav">';
+    if (pi > 0) {
+      html += '<button class="btn btn-ghost" onclick="showPhase(' + (pi-1) + ')">← ' + data[pi-1].title.split(' ')[0] + '</button>';
+    } else {
+      html += '<span></span>';
+    }
+    // Dots
+    html += '<div class="phase-nav-center">';
+    data.forEach(function(_,di){
+      html += '<div class="dot' + (di===pi ? ' active' : '') + '" onclick="showPhase(' + di + ')"></div>';
+    });
+    html += '</div>';
+    if (pi < data.length - 1) {
+      html += '<button class="btn btn-primary" onclick="showPhase(' + (pi+1) + ')">Next: ' + data[pi+1].title.split(' ')[0] + ' →</button>';
+    } else {
+      html += '<button class="btn btn-primary" onclick="alert(\'🎉 Setup complete! Your Mac is fully configured.\')">🎉 All Done!</button>';
+    }
+    html += '</div>';
+
+    html += '</div>'; // phase
+  });
+
+  content.innerHTML = html;
+
+  // Update step progress labels
+  data.forEach(function(_,pi){ updateStepProgress(pi); });
+}
+
+function showPhase(i, animate) {
+  if (animate === undefined) animate = true;
+
+  currentPhase = i;
+
+  // Show/hide phases
+  document.querySelectorAll('.phase').forEach(function(el){ el.classList.remove('show'); });
+  var phEl = document.getElementById('ph' + i);
+  if (phEl) phEl.classList.add('show');
+
+  // Update sidebar nav
+  document.querySelectorAll('.nav-item').forEach(function(el,idx){
+    el.classList.remove('active');
+    var done = countDone(idx) === data[idx].steps.length && data[idx].steps.length > 0;
+    el.classList.toggle('done', done);
+  });
+  var ni = document.getElementById('navItem' + i);
+  if (ni) ni.classList.add('active');
+
+  // Close mobile sidebar
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  // Scroll to top of content
+  document.querySelector('.main').scrollTop = 0;
+  window.scrollTo(0, 0);
+}
+
+function toggleStep(event, pi, si) {
+  var stepEl = document.getElementById('step' + pi + si);
+  var body = stepEl.querySelector('.step-body');
+  var chevron = stepEl.querySelector('.step-chevron');
+  var isOpen = stepEl.classList.toggle('open');
+  body.style.display = isOpen ? 'block' : 'none';
+  chevron.style.transform = isOpen ? 'rotate(90deg)' : '';
+}
+
+function toggleDone(pi, si) {
+  var key = stepKey(pi, si);
+  var stepEl = document.getElementById('step' + pi + si);
+  if (completedSet.has(key)) {
+    completedSet.delete(key);
+    stepEl.classList.remove('completed');
+  } else {
+    completedSet.add(key);
+    stepEl.classList.add('completed');
+  }
+  saveProgress();
+  updateProgress();
+  updateStepProgress(pi);
+
+  // Update sidebar done state
+  var done = countDone(pi) === data[pi].steps.length;
+  var ni = document.getElementById('navItem' + pi);
+  if (ni) ni.classList.toggle('done', done);
+}
+
+function countDone(pi) {
+  var count = 0;
+  for (var si = 0; si < data[pi].steps.length; si++) {
+    if (completedSet.has(stepKey(pi, si))) count++;
+  }
+  return count;
+}
+
+function updateStepProgress(pi) {
+  var done = countDone(pi);
+  var total = data[pi].steps.length;
+  var el = document.getElementById('stepProgress' + pi);
+  if (el) el.innerHTML = '<strong>' + done + '</strong> / ' + total + ' done';
+}
+
+function updateProgress() {
+  var done = completedSet.size;
+  var pct = totalSteps > 0 ? Math.round((done / totalSteps) * 100) : 0;
+  var circumference = 87.96;
+  var offset = circumference - (circumference * pct / 100);
+
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressCount').textContent = done + ' of ' + totalSteps + ' steps done';
+  document.getElementById('progressBar').style.strokeDashoffset = offset;
+}
+
+function expandAll() {
+  var phase = document.getElementById('ph' + currentPhase);
+  if (!phase) return;
+  phase.querySelectorAll('.step').forEach(function(stepEl) {
+    stepEl.classList.add('open');
+    stepEl.querySelector('.step-body').style.display = 'block';
+    stepEl.querySelector('.step-chevron').style.transform = 'rotate(90deg)';
+  });
+}
+
+function resetProgress() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  completedSet.clear();
+  localStorage.removeItem('devsetup_done');
+  document.querySelectorAll('.step.completed').forEach(function(el){
+    el.classList.remove('completed');
+  });
+  document.querySelectorAll('.nav-item.done').forEach(function(el){
+    el.classList.remove('done');
+  });
+  updateProgress();
+  data.forEach(function(_,pi){ updateStepProgress(pi); });
+}
+
+function copyCode(btn, text) {
+  var decoded = text.replace(/\\n/g,'\n').replace(/\\\\/g,'\\').replace(/\\'/g,"'");
+  navigator.clipboard.writeText(decoded).then(function(){
+    btn.textContent = 'copied!';
+    btn.classList.add('copied');
+    setTimeout(function(){
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+// ── Boot ───────────────────────────────────────────────────────
+buildUI();
+</script>
+</body>
+</html>
